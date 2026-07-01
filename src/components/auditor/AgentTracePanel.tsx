@@ -1,0 +1,137 @@
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Search,
+  Tags,
+  AlertTriangle,
+  Sparkles,
+  FileCheck,
+  Check,
+  ChevronDown,
+} from "lucide-react";
+import { agentTraceSteps } from "@/lib/mockData";
+
+const icons = [Search, Tags, AlertTriangle, Sparkles, FileCheck];
+
+export function AgentTracePanel({
+  onComplete,
+  compact = false,
+}: {
+  onComplete?: () => void;
+  compact?: boolean;
+}) {
+  const [active, setActive] = useState(0);
+  const [open, setOpen] = useState(!compact);
+
+  useEffect(() => {
+    if (active >= agentTraceSteps.length) {
+      onComplete?.();
+      return;
+    }
+    const t = setTimeout(() => setActive((a) => a + 1), 850);
+    return () => clearTimeout(t);
+  }, [active, onComplete]);
+
+  const done = active >= agentTraceSteps.length;
+
+  return (
+    <div
+      className={
+        compact
+          ? "rounded-2xl border border-white/10 bg-white/[0.02] p-5"
+          : "mx-auto max-w-2xl px-6 py-16"
+      }
+    >
+      {compact ? (
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="mb-2 flex w-full items-center justify-between text-left"
+        >
+          <div>
+            <div className="text-sm font-medium text-white">Agent trace</div>
+            <div className="text-xs text-white/50">
+              How these findings were produced — 5 agents, {agentTraceSteps.length} steps
+            </div>
+          </div>
+          <motion.div animate={{ rotate: open ? 180 : 0 }}>
+            <ChevronDown className="h-4 w-4 text-white/50" />
+          </motion.div>
+        </button>
+      ) : (
+        <div className="mb-8 text-center">
+          <div className="text-xs uppercase tracking-widest text-accent">Running audit</div>
+          <h2 className="mt-2 text-2xl font-semibold text-white">Agents at work</h2>
+        </div>
+      )}
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.ol
+            initial={compact ? { height: 0, opacity: 0 } : false}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="relative space-y-4 overflow-hidden pl-2"
+          >
+            {agentTraceSteps.map((step, i) => {
+              const Icon = icons[i];
+              const isDone = i < active || done;
+              const isActive = i === active && !done;
+              const isPending = i > active && !done;
+              return (
+                <motion.li
+                  key={step.agent}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{
+                    opacity: isPending ? 0.35 : 1,
+                    x: 0,
+                  }}
+                  transition={{ duration: 0.4, delay: compact ? 0 : i * 0.05 }}
+                  className="relative flex gap-4 rounded-xl border border-white/5 bg-white/[0.02] p-4"
+                >
+                  <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5">
+                    <Icon className="h-4 w-4 text-white/70" />
+                    <span className="absolute -right-1 -top-1 flex h-3 w-3">
+                      {isActive && (
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+                      )}
+                      <span
+                        className={`relative inline-flex h-3 w-3 items-center justify-center rounded-full ${
+                          isDone ? "bg-accent" : isActive ? "bg-accent" : "bg-white/20"
+                        }`}
+                      >
+                        {isDone && <Check className="h-2 w-2 text-black" strokeWidth={4} />}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-white">{step.agent}</span>
+                      <span className="text-[10px] uppercase tracking-wider text-white/40">
+                        Step {i + 1}
+                      </span>
+                    </div>
+                    <div className="mt-0.5 text-xs text-white/50">
+                      {isDone ? null : step.running}
+                    </div>
+                    <AnimatePresence>
+                      {isDone && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.4 }}
+                          className="mt-1 text-sm text-white/80"
+                        >
+                          {step.result}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.li>
+              );
+            })}
+          </motion.ol>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
