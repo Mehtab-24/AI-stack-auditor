@@ -1,9 +1,14 @@
 # Product Requirements Document (PRD)
 ## AI Stack Auditor — Agent-Based AI Spend Rationalization Platform
 
-**Version:** 1.0
+**Version:** 2.0
 **Prepared for:** Kaggle Vibe Coding — AI Agents Capstone Project
-**Status:** Draft for MVP build
+**Status:** Updated for Antigravity build (auth, persistence, expanded agent set)
+
+**Changelog from v1.0:** Added user auth + persisted reports as an MVP feature (previously
+a non-goal). Added ROI Intelligence Agent and Stack Simulator to the agent pipeline. Moved
+Prompt Optimization Agent and AI Router Agent to Future Scope. Build tooling changed from
+Lovable+Antigravity split to Antigravity-only.
 
 ---
 
@@ -36,8 +41,10 @@ Given a company's uploaded spend data (CSV/invoices/manual tool list), autonomou
 1. Discover all AI-related tools and hidden AI add-ons
 2. Map each tool to the business job it performs
 3. Detect waste, overlap, and inefficiency
-4. Recommend a leaner, cheaper equivalent stack
-5. Produce a manager-ready savings report
+4. Weigh cost against business value (ROI), not just flag cost alone
+5. Recommend a leaner, cheaper equivalent stack
+6. Let users simulate "what if" changes before committing
+7. Produce a manager-ready savings report, saved to their account and downloadable
 
 ### Secondary goals (post-MVP)
 - Continuous monitoring / renewal alerts
@@ -50,7 +57,11 @@ Given a company's uploaded spend data (CSV/invoices/manual tool list), autonomou
   All Action Agent output is a **recommendation for human approval**.
 - The system does **not** pull live usage telemetry via SSO/API in the MVP. Usage signals
   are self-reported/estimated inputs, clearly labeled as such in the UI.
-- No multi-tenant billing, auth-hardening, or enterprise SSO in MVP.
+- No team/multi-user sharing of a single report, no enterprise SSO, no billing/payments.
+
+> **Changed from v1.0:** user authentication and persisted report history are now IN scope
+> (previously excluded as "multi-tenant auth" for MVP). This was added because it
+> meaningfully strengthens the product's credibility as more than a single-session demo.
 
 ---
 
@@ -65,6 +76,7 @@ visibility into decentralized AI tool decisions.
 **User characteristics:**
 - Price-sensitive, time-poor, non-technical decision makers
 - Want a clear dollar number and a short action list, not a raw data dump
+- Want to revisit past audits over time, not just a one-off report
 
 ---
 
@@ -75,46 +87,81 @@ visibility into decentralized AI tool decisions.
 | 1 | AI Spend Discovery | Ingest CSV/invoice/manual tool list; identify AI tools & hidden AI add-ons | P0 |
 | 2 | Tool-to-Task Mapping | Classify each tool by business job (coding, writing, meetings, design, support, analytics, search) | P0 |
 | 3 | Waste & Overlap Detection | Flag duplicate-function tools, underused subscriptions, costly tiers, inactive seats | P0 |
-| 4 | Alternative Recommendations | Suggest cheaper/consolidated tool combos with confidence scores | P0 |
-| 5 | Savings Estimation & Action Plan | Dashboard with $ savings, retain/downgrade/cancel/renew-review suggestions, exportable report | P0 |
-| 6 | Agent Trace / Reasoning View | Show what each agent found and why (transparency for judges & users) | P1 |
-| 7 | Synthetic Demo Dataset | Pre-built sample company data for live demo | P0 |
-| 8 | Renewal Risk Flags | Highlight upcoming renewals paired with low-usage or overlap findings | P1 |
+| 4 | ROI Intelligence | Score each tool's business value vs. cost so high-cost-but-justified tools aren't flagged as waste | P0 |
+| 5 | Alternative Recommendations | Suggest cheaper/consolidated tool combos with confidence scores | P0 |
+| 6 | Stack Simulator | Let users simulate "what if we replaced X with Y" before committing to a change | P1 |
+| 7 | Savings Estimation & Action Plan | Dashboard with $ savings, retain/downgrade/cancel/renew-review suggestions | P0 |
+| 8 | Agent Trace / Reasoning View | Show what each agent found and why (transparency for judges & users) | P0 |
+| 9 | User Auth + Saved Reports | Sign up/sign in; past audits persist per user and can be revisited | P0 |
+| 10 | Downloadable Report | Export a report as PDF | P0 |
+| 11 | Dark / Light Mode | Theme toggle applied consistently across the app | P1 |
+| 12 | Synthetic Demo Dataset + "Try Demo" mode | Pre-built sample data usable without an account | P0 |
+| 13 | Renewal Risk Flags | Highlight upcoming renewals paired with low-usage or overlap findings | P1 |
 
 ---
 
-## 5. User Flow
+## 5. Agent Pipeline (updated)
 
-1. User uploads a CSV of software expenses and/or a few invoices (or picks a demo dataset).
-2. **Discovery Agent** extracts AI-related line items and hidden AI add-ons.
-3. **Job-Mapping Agent** classifies each tool by business task, grounded against a curated
-   AI-tool knowledge base (not free-form LLM guessing).
-4. **Waste Detection Agent** finds duplicate functions, underused subscriptions, and
-   unjustified plan costs, each with a confidence score.
-5. **Alternative Recommendation Agent** proposes a leaner stack.
-6. **Action Agent** compiles a savings report: retain / downgrade / cancel / review-renewal,
-   with estimated monthly & annual savings — presented as **draft recommendations requiring
-   user confirmation**, never auto-executed.
-7. User reviews the dashboard, expands agent reasoning per finding, and exports a report.
+1. **Discovery Agent** — extracts AI-related line items and hidden AI add-ons
+2. **Job-Mapping Agent** — classifies each tool by business task, grounded against a
+   curated AI-tool knowledge base
+3. **Waste Detection Agent** — finds duplicate functions, underused subscriptions, and
+   unjustified plan costs, each with a confidence score
+4. **ROI Intelligence Agent** — scores business value vs. cost per tool, so the system can
+   distinguish "expensive but justified" from "expensive and wasteful"
+5. **Alternative Recommendation Agent** — proposes a leaner stack, informed by both Waste
+   Detection and ROI findings
+6. **Stack Simulator** — runs independently of the main pipeline; lets a user test a
+   hypothetical change (e.g. "replace Claude with Gemini") without touching real data
+7. **Action Agent** — compiles a savings report: retain / downgrade / cancel /
+   review-renewal, with estimated monthly & annual savings — presented as **draft
+   recommendations requiring user confirmation**, never auto-executed
+
+> Prompt Optimization Agent and AI Router Agent were considered and **moved to Future
+> Scope** (see §10) — they require a different data source (raw prompt/token logs) and
+> serve a different buyer (developers optimizing LLM calls, not ops leads managing
+> subscriptions), which would dilute the product's core positioning if built into the MVP.
 
 ---
 
-## 6. Success Metrics (Hackathon Demo)
+## 6. User Flow
+
+1. User lands on Sign In / Register, or chooses "Try Demo" to skip auth.
+2. Signed-in users see **My Reports** (past audits) with a "+ New Audit" option.
+3. User uploads a CSV/invoices, or picks the demo dataset.
+4. Discovery → Job-Mapping → Waste Detection → ROI Intelligence agents run, visualized in
+   the **Agent Trace Panel**.
+5. Alternative Recommendation Agent proposes changes; user may branch into the **Stack
+   Simulator** to test hypotheticals before deciding.
+6. Action Agent compiles the final report; user reviews findings/recommendations, approves
+   or dismisses each, and can **download the report as a PDF**.
+7. If signed in, the report is saved to their account automatically and reappears in My
+   Reports.
+
+---
+
+## 7. Success Metrics (Hackathon Demo)
 
 - Demo dataset produces at least 3 distinct waste/overlap findings with clear reasoning
+- At least one ROI finding shows a tool retained *despite* high cost, demonstrating the
+  system isn't just "flag everything expensive"
 - Estimated savings figure is computed transparently (traceable to specific line items)
 - End-to-end flow (upload → report) completes in under 60 seconds on stage
 - Judges can see agent-by-agent reasoning, not just a final answer
+- Sign-up → run audit → save → revisit in My Reports works live, without errors
+- Dark/light toggle works identically across every screen
 
 ---
 
-## 7. Differentiation / Competitive Positioning
+## 8. Differentiation / Competitive Positioning
 
 | | Generic SaaS spend tools | AI Stack Auditor |
 |---|---|---|
 | Tracks cost | Yes | Yes |
 | Understands AI task-level functional overlap | No | Yes |
 | Detects hidden AI add-ons inside existing SaaS | No | Yes |
+| Weighs cost against business value (ROI), not just cost alone | No | Yes |
+| Lets users simulate changes before committing | No | Yes |
 | Recommends task-equivalent cheaper alternatives | No | Yes |
 | Multi-agent transparent reasoning | No | Yes |
 
@@ -123,21 +170,26 @@ spend — not general SaaS management."**
 
 ---
 
-## 8. Risks & Mitigations
+## 9. Risks & Mitigations
 
 | Risk | Mitigation |
 |---|---|
 | Usage data is estimated, not real | Label clearly as "estimated usage confidence" in UI; never present as fact |
 | LLM misclassifies unfamiliar tools | Ground Job-Mapping Agent with curated tool knowledge base + retrieval |
 | Bad recommendation causes real harm if acted on | All actions are drafts requiring explicit user confirmation; confidence scores shown |
-| Financial data sensitivity | Process transiently per session; do not persist raw invoices beyond session unless user opts in |
-| Scope too large for hackathon timeline | De-risk by allowing Job-Mapping + Waste Detection to share a single structured LLM call in v0 if needed |
+| Financial data sensitivity | RLS-protected per-user storage in Supabase; users control what's saved |
+| System looks "cancel-happy" without ROI context | ROI Intelligence Agent explicitly surfaces "retained despite cost" cases |
+| Scope too large for hackathon timeline | Priority order: auth+data flow → core screens → Agent Trace animation → polish (see BUILD_PLAN) |
+| Auth breaks live on stage | "Try Demo" mode bypasses auth entirely as a guaranteed fallback |
 
 ---
 
-## 9. Out of Scope for MVP
-- Direct API/SaaS integrations
-- Automated cancellations/downgrades
-- Multi-tenant auth & billing
-- Peer benchmarking
-- Real-time usage telemetry (SSO/API-based)
+## 10. Future Scope (explicitly out of MVP, kept for roadmap credibility)
+- **Prompt Optimization Agent** — analyzes raw prompt/token usage logs to reduce LLM API
+  costs (different data source: requires prompt-level logs, not subscription data)
+- **AI Router Agent** — recommends cheaper models for specific workloads (different buyer:
+  developers, not ops/finance decision-makers)
+- Direct SaaS integrations (no manual upload required)
+- Peer benchmarking against similar companies
+- Real-time usage telemetry via SSO/API
+- Team/multi-user report sharing, enterprise SSO, billing

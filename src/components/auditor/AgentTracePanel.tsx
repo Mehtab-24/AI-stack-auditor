@@ -6,12 +6,13 @@ import {
   AlertTriangle,
   Sparkles,
   FileCheck,
+  Play,
   Check,
   ChevronDown,
 } from "lucide-react";
 import { agentTraceSteps } from "@/lib/mockData";
 
-const icons = [Search, Tags, AlertTriangle, Sparkles, FileCheck];
+const icons = [Search, Tags, AlertTriangle, Sparkles, FileCheck, Play, Check];
 
 export function AgentTracePanel({
   onComplete,
@@ -28,7 +29,7 @@ export function AgentTracePanel({
       onComplete?.();
       return;
     }
-    const t = setTimeout(() => setActive((a) => a + 1), 850);
+    const t = setTimeout(() => setActive((a) => a + 1), 900);
     return () => clearTimeout(t);
   }, [active, onComplete]);
 
@@ -38,29 +39,32 @@ export function AgentTracePanel({
     <div
       className={
         compact
-          ? "rounded-2xl border border-white/10 bg-white/[0.02] p-5"
+          ? "rounded-2xl border border-border bg-card p-5 shadow-sm"
           : "mx-auto max-w-2xl px-6 py-16"
       }
     >
       {compact ? (
         <button
           onClick={() => setOpen((o) => !o)}
-          className="mb-2 flex w-full items-center justify-between text-left"
+          className="mb-3 flex w-full items-center justify-between text-left"
         >
           <div>
-            <div className="text-sm font-medium text-white">Agent trace</div>
-            <div className="text-xs text-white/50">
-              How these findings were produced — 5 agents, {agentTraceSteps.length} steps
+            <div className="text-sm font-semibold text-foreground">Agent Trace</div>
+            <div className="text-xs text-muted-foreground">
+              Tracing progress — 7 specialized agents, {agentTraceSteps.length} steps
             </div>
           </div>
           <motion.div animate={{ rotate: open ? 180 : 0 }}>
-            <ChevronDown className="h-4 w-4 text-white/50" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </motion.div>
         </button>
       ) : (
         <div className="mb-8 text-center">
-          <div className="text-xs uppercase tracking-widest text-accent">Running audit</div>
-          <h2 className="mt-2 text-2xl font-semibold text-white">Agents at work</h2>
+          <div className="text-xs uppercase tracking-widest text-accent font-semibold">Running Audit</div>
+          <h2 className="mt-2 text-3xl font-semibold text-foreground">Agents at work</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            A multi-agent reasoning chain is parsing, categorizing, and checking your stack for leaks.
+          </p>
         </div>
       )}
 
@@ -70,10 +74,10 @@ export function AgentTracePanel({
             initial={compact ? { height: 0, opacity: 0 } : false}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="relative space-y-4 overflow-hidden pl-2"
+            className="relative space-y-3 overflow-hidden pl-2"
           >
             {agentTraceSteps.map((step, i) => {
-              const Icon = icons[i];
+              const Icon = icons[i] || Sparkles;
               const isDone = i < active || done;
               const isActive = i === active && !done;
               const isPending = i > active && !done;
@@ -86,17 +90,17 @@ export function AgentTracePanel({
                     x: 0,
                   }}
                   transition={{ duration: 0.4, delay: compact ? 0 : i * 0.05 }}
-                  className="relative flex gap-4 rounded-xl border border-white/5 bg-white/[0.02] p-4"
+                  className="relative flex gap-4 rounded-2xl border border-border bg-muted/20 p-4 shadow-sm"
                 >
-                  <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5">
-                    <Icon className="h-4 w-4 text-white/70" />
+                  <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-card shadow-sm">
+                    <Icon className="h-4 w-4 text-foreground/80" />
                     <span className="absolute -right-1 -top-1 flex h-3 w-3">
                       {isActive && (
                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
                       )}
                       <span
                         className={`relative inline-flex h-3 w-3 items-center justify-center rounded-full ${
-                          isDone ? "bg-accent" : isActive ? "bg-accent" : "bg-white/20"
+                          isDone ? "bg-accent" : isActive ? "bg-accent" : "bg-muted-foreground/30"
                         }`}
                       >
                         {isDone && <Check className="h-2 w-2 text-black" strokeWidth={4} />}
@@ -105,12 +109,12 @@ export function AgentTracePanel({
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-white">{step.agent}</span>
-                      <span className="text-[10px] uppercase tracking-wider text-white/40">
+                      <span className="text-sm font-semibold text-foreground">{step.agent}</span>
+                      <span className="text-[9px] uppercase tracking-wider text-muted-foreground/60 font-semibold bg-muted px-1.5 py-0.5 rounded">
                         Step {i + 1}
                       </span>
                     </div>
-                    <div className="mt-0.5 text-xs text-white/50">
+                    <div className="mt-0.5 text-xs text-muted-foreground">
                       {isDone ? null : step.running}
                     </div>
                     <AnimatePresence>
@@ -119,7 +123,7 @@ export function AgentTracePanel({
                           initial={{ opacity: 0, y: -4 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.4 }}
-                          className="mt-1 text-sm text-white/80"
+                          className="mt-1 text-xs text-foreground/80 font-medium leading-relaxed"
                         >
                           {step.result}
                         </motion.div>
