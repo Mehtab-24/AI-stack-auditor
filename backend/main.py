@@ -1,75 +1,62 @@
-"""AI Stack Auditor — FastAPI application entry point.
-
-Run with:
-    uvicorn main:app --reload
-"""
-
-from __future__ import annotations
-
-from contextlib import asynccontextmanager
-from typing import AsyncIterator
-
-from fastapi import FastAPI
+import os
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Optional
+import uvicorn
+from dotenv import load_dotenv
 
-from app.api.routes import router
-from app.config.settings import settings
-from app.core.exceptions import register_exception_handlers
-from app.core.logging import get_logger
+# Load local environment files if present
+load_dotenv()
 
-logger = get_logger("main")
+from orchestrator import run_agent_pipeline
 
+app = FastAPI(title="AI Stack Auditor Backend", version="1.0")
 
-@asynccontextmanager
-async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-    """Application startup and shutdown lifecycle."""
-    logger.info(
-        "%s v%s starting (env=%s, debug=%s)",
-        settings.app_name,
-        settings.app_version,
-        settings.app_env,
-        settings.debug,
-    )
-    yield
-    logger.info("Shutting down")
+# Enable CORS for local and web frontend connections
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # In production, restrict this to the frontend domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+class AuditRequest(BaseModel):
+    use_demo: bool = False
+    business_name: Optional[str] = "My Startup"
 
-def create_app() -> FastAPI:
-    """Application factory — creates and configures the FastAPI instance."""
-    application = FastAPI(
-        title=settings.app_name,
-        version=settings.app_version,
-        description=(
-            "Agent-based AI spend rationalization platform. "
-            "Discovers AI tool overlap, scores ROI, and recommends a leaner stack."
-        ),
-        docs_url="/docs",
-        redoc_url="/redoc",
-        lifespan=lifespan,
-    )
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "ai-stack-auditor-backend"}
 
-    # CORS
-    application.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.cors_origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+@app.post("/audit/run")
+async def run_audit(
+    file: Optional[UploadFile] = File(None),
+    use_demo: bool = Form(False),
+    business_name: str = Form("My Startup"),
+    business_id: Optional[str] = Form(None)
+):
+    try:
+        # Read the file data if uploaded
+        file_content = None
+        if file:
+            contents = await file.read()
+            file_content = contents.decode("utf-8")
+        
+        # Trigger the sequential multi-agent execution pipeline
+        result = await run_agent_pipeline(
+            file_content=file_content,
+            use_demo=use_demo,
+            business_name=business_name,
+            business_id=business_id
+        )
+        return result
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-    # Exception handlers
-    register_exception_handlers(application)
-
-    # Routes
-    application.include_router(router)
-
-    @application.get("/", include_in_schema=False)
-    async def root():
-        from fastapi.responses import RedirectResponse
-        return RedirectResponse(url="/docs")
-
-    return application
-
-
-# Module-level instance — uvicorn imports this.
-app = create_app()
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)

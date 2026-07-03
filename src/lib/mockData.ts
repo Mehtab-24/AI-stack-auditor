@@ -20,8 +20,10 @@ export type Confidence = "High" | "Medium" | "Low";
 export type Agent =
   | "Discovery Agent"
   | "Job-Mapping Agent"
-  | "Waste Detection Agent"
+  | "Waste & Overlap Agent"
+  | "ROI Reasoning Agent"
   | "Alternative Recommendation Agent"
+  | "Stack Simulator Agent"
   | "Action Agent";
 
 export interface Tool {
@@ -222,16 +224,28 @@ export const agentTraceSteps: {
     result: "Mapped tools to 7 job categories — 3 overlaps detected",
   },
   {
-    agent: "Waste Detection Agent",
-    label: "Waste Detection",
+    agent: "Waste & Overlap Agent",
+    label: "Waste & Overlap",
     running: "Detecting overlap and underused subscriptions...",
     result: `Flagged ${totalToolsFlagged} tools with usage below threshold`,
+  },
+  {
+    agent: "ROI Reasoning Agent",
+    label: "ROI Reasoning",
+    running: "Analyzing subscription ROI vs cost-value tiers...",
+    result: "Determined ROI metrics - Copy.ai and Copilot confirmed high value, Cursor Pro low value",
   },
   {
     agent: "Alternative Recommendation Agent",
     label: "Alternatives",
     running: "Finding cheaper equivalents...",
     result: `Identified ${findings.length} consolidation & downgrade opportunities`,
+  },
+  {
+    agent: "Stack Simulator Agent",
+    label: "Stack Simulator",
+    running: "Simulating post-consolidation coverage of critical jobs...",
+    result: "Simulated future state - 100% job coverage maintained with leaner footprint",
   },
   {
     agent: "Action Agent",
