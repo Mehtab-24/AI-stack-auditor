@@ -1,62 +1,49 @@
 import os
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Optional
+import sys
+from pathlib import Path
 import uvicorn
-from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-# Load local environment files if present
-load_dotenv()
+# Add backend directory to sys.path so app imports work from anywhere
+backend_dir = Path(__file__).resolve().parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
 
-from orchestrator import run_agent_pipeline
+from app.config.settings import settings
+from app.api.routes import router, run_audit
+from app.core.exceptions import register_exception_handlers
 
-app = FastAPI(title="AI Stack Auditor Backend", version="1.0")
+# Initialize FastAPI application
+app = FastAPI(
+    title=settings.app_name,
+    version=settings.app_version,
+    debug=settings.debug,
+)
 
-# Enable CORS for local and web frontend connections
+# Register custom exception handlers
+register_exception_handlers(app)
+
+# Register CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, restrict this to the frontend domain
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-class AuditRequest(BaseModel):
-    use_demo: bool = False
-    business_name: Optional[str] = "My Startup"
+# Include the unified v1 router
+app.include_router(router)
 
-@app.get("/health")
-def health_check():
-    return {"status": "healthy", "service": "ai-stack-auditor-backend"}
+# Expose a legacy/direct endpoint at /audit/run for frontend compatibility
+app.post("/audit/run", tags=["Legacy Compatibility"])(run_audit)
 
-@app.post("/audit/run")
-async def run_audit(
-    file: Optional[UploadFile] = File(None),
-    use_demo: bool = Form(False),
-    business_name: str = Form("My Startup"),
-    business_id: Optional[str] = Form(None)
-):
-    try:
-        # Read the file data if uploaded
-        file_content = None
-        if file:
-            contents = await file.read()
-            file_content = contents.decode("utf-8")
-        
-        # Trigger the sequential multi-agent execution pipeline
-        result = await run_agent_pipeline(
-            file_content=file_content,
-            use_demo=use_demo,
-            business_name=business_name,
-            business_id=business_id
-        )
-        return result
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+@app.get("/")
+def read_root():
+    # Redirect root requests to Swagger UI
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/docs")
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("main:app", host=settings.host, port=settings.port, reload=True)

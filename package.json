@@ -1,0 +1,10 @@
+{
+  "name": "ai-stack-auditor-root",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "npm run dev --prefix frontend",
+    "build:frontend": "npm run build --prefix frontend",
+    "dev:backend": "python backend/main.py",
+    "install:all": "npm install --prefix frontend && pip install -r backend/requirements.txt"
+  }
+}
