@@ -91,7 +91,7 @@ export function RecommendationsView({ auditResult }: RecommendationsViewProps) {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 px-6 py-10">
+    <div className="mx-auto max-w-[1400px] space-y-8 px-8 py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-foreground">Recommendations</h2>

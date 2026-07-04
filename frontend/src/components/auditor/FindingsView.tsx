@@ -45,7 +45,7 @@ export function FindingsView({ auditResult }: FindingsViewProps) {
   );
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-6 py-10">
+    <div className="mx-auto max-w-[1400px] space-y-6 px-8 py-10">
       <div>
         <h2 className="text-2xl font-semibold text-foreground">Findings</h2>
         <p className="text-sm text-muted-foreground">

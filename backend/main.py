@@ -11,7 +11,7 @@ if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
 from app.config.settings import settings
-from app.api.routes import router, run_audit
+from app.api.routes import router, run_audit, run_simulation
 from app.core.exceptions import register_exception_handlers
 
 # Initialize FastAPI application
@@ -38,6 +38,9 @@ app.include_router(router)
 
 # Expose a legacy/direct endpoint at /audit/run for frontend compatibility
 app.post("/audit/run", tags=["Legacy Compatibility"])(run_audit)
+
+# Expose a legacy/direct endpoint at /simulate for frontend compatibility
+app.post("/simulate", tags=["Legacy Compatibility"])(run_simulation)
 
 @app.get("/")
 def read_root():

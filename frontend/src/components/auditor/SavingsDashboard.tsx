@@ -274,7 +274,7 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-10 px-6 py-10">
+    <div className="mx-auto max-w-[1400px] space-y-10 px-8 py-10">
       {/* Top Banner Actions */}
       <section className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
         <div className="text-left">
@@ -312,15 +312,15 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
       </section>
 
       {/* Monthly Savings Large Display */}
-      <section className="text-center">
-        <div className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
+      <section className="text-center py-6">
+        <div className="text-xs uppercase tracking-widest text-muted-foreground font-bold font-sans">
           Estimated Monthly Savings
         </div>
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mt-2 text-6xl font-semibold tracking-tight text-accent sm:text-8xl"
+          className="mt-2 text-7xl font-bold tracking-tight text-[#22D97A] dark:text-[#22D97A] sm:text-8xl"
         >
           <CountUp to={currentMonthlySavings} prefix="$" suffix="/mo" />
         </motion.div>
@@ -331,18 +331,22 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
       </section>
 
       {/* Cards stats grid */}
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <section className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         {stats.map((s, i) => (
           <motion.div
             key={s.label}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 + i * 0.08, duration: 0.4 }}
-            className="rounded-2xl border border-border bg-card p-5 shadow-sm"
+            className="cut-br-border dashboard-box-border"
           >
-            <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{s.label}</div>
-            <div className="mt-2 text-3xl font-semibold text-foreground">
-              <CountUp to={s.value} prefix={s.prefix ?? ""} />
+            <div className="cut-br-content dashboard-box-content p-6 h-full flex flex-col justify-between">
+              <div className="dashboard-box-heading uppercase">
+                {s.label}
+              </div>
+              <div className="dashboard-box-value mt-2">
+                <CountUp to={s.value} prefix={s.prefix ?? ""} />
+              </div>
             </div>
           </motion.div>
         ))}
@@ -350,47 +354,54 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
 
       {/* Chart and trace panel side-by-side */}
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="rounded-2xl border border-border bg-card p-5 lg:col-span-2 shadow-sm">
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-foreground">Spend by Category</h3>
-            <p className="text-xs text-muted-foreground">Monthly software expense in USD</p>
-          </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={currentSpendByCategory} margin={{ left: -20 }}>
-                <XAxis
-                  dataKey="category"
-                  stroke="var(--color-muted-foreground)"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="var(--color-muted-foreground)"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  cursor={{ fill: "var(--color-muted)", opacity: 0.2 }}
-                  contentStyle={{
-                    background: "var(--color-card)",
-                    border: "1px solid var(--color-border)",
-                    borderRadius: 12,
-                    fontSize: 12,
-                    color: "var(--color-foreground)",
-                  }}
-                />
-                <Bar dataKey="spend" radius={[6, 6, 0, 0]}>
-                  {currentSpendByCategory.map((_, i) => (
-                    <Cell key={i} fill="var(--color-accent)" fillOpacity={0.85} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+        <div className="lg:col-span-2 cut-tr-border dashboard-box-border graph-box">
+          <div className="cut-tr-content dashboard-box-content p-6 h-full flex flex-col">
+            <div className="mb-4">
+              <h3 className="dashboard-box-heading">Spend by Category</h3>
+              <p className="text-xs text-muted-foreground mt-1">Monthly software expense in USD</p>
+            </div>
+            <div className="flex-1 w-full pr-20 min-h-[260px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={currentSpendByCategory} margin={{ left: -20 }}>
+                  <XAxis
+                    dataKey="category"
+                    stroke="var(--color-muted-foreground)"
+                    fontSize={13}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    stroke="var(--color-muted-foreground)"
+                    fontSize={13}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "var(--color-muted)", opacity: 0.2 }}
+                    contentStyle={{
+                      background: "var(--color-card)",
+                      border: "1px solid var(--color-border)",
+                      borderRadius: 12,
+                      fontSize: 14,
+                      color: "var(--color-foreground)",
+                    }}
+                  />
+                  <Bar dataKey="spend" radius={[6, 6, 0, 0]}>
+                    {currentSpendByCategory.map((_, i) => (
+                      <Cell key={i} fill="var(--color-accent)" fillOpacity={0.85} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
-        <AgentTracePanel steps={auditResult?.agentTraceSteps} compact />
+
+        <div className="cut-tl-border dashboard-box-border flowchart-box">
+          <div className="cut-tl-content dashboard-box-content p-6 h-full">
+            <AgentTracePanel steps={auditResult?.agentTraceSteps} compact noBorder />
+          </div>
+        </div>
       </section>
     </div>
   );

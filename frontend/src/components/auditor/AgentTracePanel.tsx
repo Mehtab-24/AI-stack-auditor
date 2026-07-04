@@ -17,48 +17,57 @@ const icons = [Search, Tags, AlertTriangle, Sparkles, FileCheck, Play, Check];
 export function AgentTracePanel({
   onComplete,
   compact = false,
+  noBorder = false,
+  steps,
 }: {
   onComplete?: () => void;
   compact?: boolean;
+  noBorder?: boolean;
+  steps?: any[];
 }) {
   const [active, setActive] = useState(0);
   const [open, setOpen] = useState(!compact);
+  const activeSteps = steps || agentTraceSteps;
 
   useEffect(() => {
-    if (active >= agentTraceSteps.length) {
+    if (active >= activeSteps.length) {
       onComplete?.();
       return;
     }
     const t = setTimeout(() => setActive((a) => a + 1), 900);
     return () => clearTimeout(t);
-  }, [active, onComplete]);
+  }, [active, onComplete, activeSteps]);
 
-  const done = active >= agentTraceSteps.length;
+  const done = active >= activeSteps.length;
 
   return (
     <div
       className={
         compact
-          ? "rounded-2xl border border-border bg-card p-5 shadow-sm"
+          ? noBorder
+            ? "w-full bg-transparent"
+            : "rounded-2xl border border-border bg-card p-5 shadow-sm"
           : "mx-auto max-w-2xl px-6 py-16"
       }
     >
-      {compact ? (
+      {compact && (
         <button
           onClick={() => setOpen((o) => !o)}
-          className="mb-3 flex w-full items-center justify-between text-left"
+          className="mb-3 flex w-full items-center justify-between text-left pl-[93px] pr-4"
         >
           <div>
-            <div className="text-sm font-semibold text-foreground">Agent Trace</div>
-            <div className="text-xs text-muted-foreground">
-              Tracing progress — 7 specialized agents, {agentTraceSteps.length} steps
+            <div className="dashboard-box-heading">Agent Trace</div>
+            <div className="text-xs text-muted-foreground mt-1 whitespace-nowrap">
+              Tracing progress — 7 specialized agents, {activeSteps.length} steps
             </div>
           </div>
           <motion.div animate={{ rotate: open ? 180 : 0 }}>
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </motion.div>
         </button>
-      ) : (
+      )}
+
+      {!compact && (
         <div className="mb-8 text-center">
           <div className="text-xs uppercase tracking-widest text-accent font-semibold">Running Audit</div>
           <h2 className="mt-2 text-3xl font-semibold text-foreground">Agents at work</h2>
@@ -74,9 +83,9 @@ export function AgentTracePanel({
             initial={compact ? { height: 0, opacity: 0 } : false}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="relative space-y-3 overflow-hidden pl-2"
+            className="relative space-y-3 overflow-hidden pl-2 pr-2"
           >
-            {agentTraceSteps.map((step, i) => {
+            {activeSteps.map((step, i) => {
               const Icon = icons[i] || Sparkles;
               const isDone = i < active || done;
               const isActive = i === active && !done;

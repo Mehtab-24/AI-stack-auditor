@@ -137,13 +137,151 @@
   --sidebar-ring: oklch(0.82 0.19 152);
 }
 
+@font-face {
+  font-family: 'Product Sans Medium';
+  font-style: normal;
+  font-weight: 500;
+  src: local('Product Sans Medium'), local('ProductSans-Medium'), url('https://fonts.cdnfonts.com/s/13998/ProductSans-Regular.woff') format('woff');
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
+    font-family: 'Product Sans', sans-serif !important;
   }
 
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: 'Product Sans', sans-serif;
   }
+
+  button, .btn {
+    font-family: 'Product Sans', sans-serif !important;
+    font-weight: 400 !important;
+    font-size: 14px !important;
+    line-height: 100% !important;
+    letter-spacing: 0% !important;
+    text-align: center !important;
+  }
+}
+
+/* Logo Heading Typography */
+.logo-heading {
+  font-family: 'Product Sans Medium', 'Product Sans', sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 20px !important;
+  line-height: 100% !important;
+  letter-spacing: 0% !important;
+}
+
+/* Custom Clipped Corners with Border Outline Preservation */
+.cut-br-border {
+  clip-path: polygon(32px 0, 100% 0, 100% calc(100% - 32px), calc(100% - 32px) 100%, 0 100%, 0 32px);
+  background-color: var(--border);
+  padding: 1.5px;
+}
+.cut-br-content {
+  clip-path: polygon(32px 0, 100% 0, 100% calc(100% - 32px), calc(100% - 32px) 100%, 0 100%, 0 32px);
+}
+
+.cut-tr-border {
+  clip-path: polygon(0 0, calc(100% - 80px) 0, 100% 80px, 100% 100%, 0 100%);
+  background-color: var(--border);
+  padding: 1.5px;
+}
+.cut-tr-content {
+  clip-path: polygon(0 0, calc(100% - 80px) 0, 100% 80px, 100% 100%, 0 100%);
+}
+
+.cut-tl-border {
+  clip-path: polygon(80px 0, 100% 0, 100% 100%, 0 100%, 0 80px);
+  background-color: var(--border);
+  padding: 1.5px;
+}
+.cut-tl-content {
+  clip-path: polygon(80px 0, 100% 0, 100% 100%, 0 100%, 0 80px);
+}
+
+/* Flowchart Font Scaler (+2px) */
+.flowchart-box .dashboard-box-heading {
+  font-size: 18px !important;
+}
+.flowchart-box .text-sm {
+  font-size: 16px !important;
+}
+.flowchart-box .text-xs {
+  font-size: 14px !important;
+}
+.flowchart-box .text-\[9px\] {
+  font-size: 11px !important;
+}
+
+/* Graph Box Font Scaler (+4px / +2px) */
+.graph-box .dashboard-box-heading {
+  font-size: 20px !important;
+}
+.graph-box .text-xs {
+  font-size: 14px !important;
+}
+
+/* Navbar Tabs Colors and Borders */
+.nav-tab-border {
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px)) !important;
+  background-color: #BAFFC4 !important;
+  padding: 0.5px !important;
+}
+.nav-tab-content {
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px)) !important;
+}
+.nav-tab-active {
+  background-color: #BAFFC4 !important;
+  color: #000000 !important;
+}
+.nav-tab-inactive {
+  background-color: #E6E6E6 !important;
+  color: #555555 !important;
+}
+.dark .nav-tab-inactive {
+  background-color: #1A1C2E !important;
+  color: #B8B8B8 !important;
+}
+
+/* Dashboard Boxes (Metrics and Containers) */
+.dashboard-box-border {
+  background-color: #8BFF9C !important;
+  padding: 0.5px !important;
+}
+.dashboard-box-content {
+  background-color: #FFFFFF !important;
+}
+.dashboard-box-heading {
+  font-family: 'Product Sans Medium', 'Product Sans', sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 16px !important;
+  line-height: 100% !important;
+  letter-spacing: 0% !important;
+  color: #B8B8B8 !important;
+}
+.dashboard-box-value {
+  font-family: 'Product Sans Medium', 'Product Sans', sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 40px !important;
+  line-height: 100% !important;
+  letter-spacing: 0% !important;
+  color: #1E1E1E !important;
+}
+
+/* Professional Dark Mode Overrides - preserves Light Mode hex colors */
+.dark .dashboard-box-border {
+  background-color: rgba(139, 255, 156, 0.45) !important;
+}
+.dark .dashboard-box-content {
+  background-color: #0D0E1C !important;
+}
+.dark .dashboard-box-heading {
+  color: #8A8A93 !important;
+}
+.dark .dashboard-box-value {
+  color: #FFFFFF !important;
 }
