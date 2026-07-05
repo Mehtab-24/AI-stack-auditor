@@ -274,14 +274,34 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
   };
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-10 px-8 py-10">
+    <div className="mx-auto max-w-[1400px] py-10 space-y-8 w-full">
       {/* Top Banner Actions */}
-      <section className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
-        <div className="text-left">
-          <div className="text-xs uppercase tracking-widest text-muted-foreground">Audit Dashboard</div>
-          <h2 className="mt-1 text-2xl font-semibold text-foreground">Rationalization Summary</h2>
+      <section className="md:px-[111px] px-8 w-full flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
+        <div className="text-left space-y-2">
+          <p
+            className="text-[#B8B8B8] dark:text-[#828282] text-[18px]"
+            style={{
+              fontFamily: "'Product Sans', sans-serif",
+              fontWeight: 400,
+              lineHeight: "100%",
+              letterSpacing: "0%",
+            }}
+          >
+            Audit Dashboard
+          </p>
+          <h2
+            className="text-[#1E1E1E] dark:text-[#FFFFFF] text-[30px]"
+            style={{
+              fontFamily: "'Product Sans Medium', 'Product Sans', sans-serif",
+              fontWeight: 500,
+              lineHeight: "100%",
+              letterSpacing: "0%",
+            }}
+          >
+            Rationalization Summary
+          </h2>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           {session && (
             <button
               onClick={handleSaveReport}
@@ -302,17 +322,23 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
               {saving ? "Saving..." : isSaved ? "Saved" : "Save Report"}
             </button>
           )}
-          <button
-            onClick={handleDownloadPDF}
-            className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-xs font-semibold text-black shadow-lg shadow-accent/15 transition hover:bg-accent/90"
-          >
-            <Download className="h-3.5 w-3.5" /> Download Report
-          </button>
+          <div className="nav-tab-border">
+            <button
+              onClick={handleDownloadPDF}
+              className="nav-tab-content px-4 py-2.5 transition cursor-pointer nav-tab-active text-xs font-semibold text-black flex items-center gap-2"
+              style={{
+                fontFamily: "'Product Sans', sans-serif",
+                fontWeight: 400,
+              }}
+            >
+              <Download className="h-3.5 w-3.5" /> Download Report
+            </button>
+          </div>
         </div>
       </section>
 
       {/* Monthly Savings Large Display */}
-      <section className="text-center py-6">
+      <section className="md:px-[111px] px-8 w-full text-center py-6">
         <div className="text-xs uppercase tracking-widest text-muted-foreground font-bold font-sans">
           Estimated Monthly Savings
         </div>
@@ -331,7 +357,7 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
       </section>
 
       {/* Cards stats grid */}
-      <section className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+      <section className="md:px-[111px] px-8 w-full grid grid-cols-1 gap-5 sm:grid-cols-3">
         {stats.map((s, i) => (
           <motion.div
             key={s.label}
@@ -353,7 +379,7 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
       </section>
 
       {/* Chart and trace panel side-by-side */}
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <section className="md:px-[111px] px-8 w-full grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 cut-tr-border dashboard-box-border graph-box">
           <div className="cut-tr-content dashboard-box-content p-6 h-full flex flex-col">
             <div className="mb-4">

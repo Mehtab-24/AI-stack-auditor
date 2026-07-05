@@ -284,50 +284,78 @@ export function AuditorApp() {
                 <span className="flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400">
                   <Sparkles className="h-3 w-3 fill-amber-500 text-amber-500" /> Demo Mode
                 </span>
+                <div className="nav-tab-border">
+                  <button
+                    onClick={() => {
+                      setIsDemo(false);
+                      setStage("upload");
+                      setShowAuthScreen(true);
+                    }}
+                    className="nav-tab-content px-4 py-1.5 transition cursor-pointer nav-tab-active"
+                    style={{
+                      fontFamily: "'Product Sans', sans-serif",
+                      fontWeight: 400,
+                      fontSize: "14px"
+                    }}
+                  >
+                    Sign In
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="nav-tab-border">
                 <button
-                  onClick={() => {
-                    setIsDemo(false);
-                    setStage("upload");
-                    setShowAuthScreen(true);
+                  onClick={() => setShowAuthScreen(true)}
+                  className="nav-tab-content px-4 py-1.5 transition cursor-pointer nav-tab-active"
+                  style={{
+                    fontFamily: "'Product Sans', sans-serif",
+                    fontWeight: 400,
+                    fontSize: "14px"
                   }}
-                  className="rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-black hover:bg-accent/90 cursor-pointer"
                 >
                   Sign In
                 </button>
               </div>
-            ) : (
-              <button
-                onClick={() => setShowAuthScreen(true)}
-                className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-black hover:bg-accent/90 cursor-pointer"
-              >
-                Sign In
-              </button>
             )}
 
             {session && (stage === "app" || stage === "upload") && (
-              <button
-                onClick={() => {
-                  setStage("reports");
-                  setTab("dashboard");
-                  setAuditResult(null);
-                }}
-                className="text-xs text-muted-foreground hover:text-foreground border border-border rounded-full px-3 py-1.5 flex items-center gap-1 bg-card hover:bg-muted/40 cursor-pointer"
-              >
-                <Database className="h-3 w-3" /> Dashboard
-              </button>
+              <div className="nav-tab-border">
+                <button
+                  onClick={() => {
+                    setStage("reports");
+                    setTab("dashboard");
+                    setAuditResult(null);
+                  }}
+                  className="nav-tab-content px-4 py-1.5 transition cursor-pointer nav-tab-active flex items-center gap-1.5"
+                  style={{
+                    fontFamily: "'Product Sans', sans-serif",
+                    fontWeight: 400,
+                    fontSize: "14px"
+                  }}
+                >
+                  <Database className="h-3.5 w-3.5 text-black" /> Dashboard
+                </button>
+              </div>
             )}
 
             {!session && stage === "app" && (
-              <button
-                onClick={() => {
-                  setStage("upload");
-                  setTab("dashboard");
-                  setAuditResult(null);
-                }}
-                className="text-xs text-muted-foreground hover:text-foreground border border-border rounded-full px-3 py-1.5 bg-card hover:bg-muted/40 cursor-pointer"
-              >
-                New audit
-              </button>
+              <div className="nav-tab-border">
+                <button
+                  onClick={() => {
+                    setStage("upload");
+                    setTab("dashboard");
+                    setAuditResult(null);
+                  }}
+                  className="nav-tab-content px-4 py-1.5 transition cursor-pointer nav-tab-active"
+                  style={{
+                    fontFamily: "'Product Sans', sans-serif",
+                    fontWeight: 400,
+                    fontSize: "14px"
+                  }}
+                >
+                  New audit
+                </button>
+              </div>
             )}
           </div>
         </div>

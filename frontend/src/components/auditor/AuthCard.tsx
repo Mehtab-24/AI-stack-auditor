@@ -177,14 +177,29 @@ export function AuthCard({ onAuthSuccess, onTryDemo, onCancel }: AuthCardProps) 
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-black shadow-lg shadow-accent/20">
             <Sparkles className="h-6 w-6" />
           </div>
-          <h2 className="text-3xl font-semibold tracking-tight text-foreground">
+          <h2
+            className="text-[#1E1E1E] dark:text-[#FFFFFF] text-[30px]"
+            style={{
+              fontFamily: "'Product Sans Medium', 'Product Sans', sans-serif",
+              fontWeight: 500,
+              lineHeight: "100%",
+              letterSpacing: "0%",
+            }}
+          >
             {isForgotPassword 
               ? "Reset Password" 
               : isSignUp 
                 ? "Create Account" 
                 : "Welcome Back"}
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p
+            className="mt-3 text-[#B8B8B8] dark:text-[#828282] text-[14px] leading-relaxed"
+            style={{
+              fontFamily: "'Product Sans', sans-serif",
+              fontWeight: 400,
+              letterSpacing: "0%",
+            }}
+          >
             {isForgotPassword
               ? "We'll email you a link to reset your password"
               : isSignUp

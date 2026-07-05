@@ -45,31 +45,53 @@ export function FindingsView({ auditResult }: FindingsViewProps) {
   );
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-6 px-8 py-10">
-      <div>
-        <h2 className="text-2xl font-semibold text-foreground">Findings</h2>
-        <p className="text-sm text-muted-foreground">
+    <div className="mx-auto max-w-[1400px] py-10 space-y-6">
+      {/* Title & Subtitle */}
+      <div className="md:px-[111px] px-8 w-full space-y-2">
+        <h2
+          className="text-[#1E1E1E] dark:text-[#FFFFFF] text-[30px]"
+          style={{
+            fontFamily: "'Product Sans Medium', 'Product Sans', sans-serif",
+            fontWeight: 500,
+            lineHeight: "100%",
+            letterSpacing: "0%",
+          }}
+        >
+          Findings
+        </h2>
+        <p
+          className="text-[#B8B8B8] dark:text-[#828282] text-[18px]"
+          style={{
+            fontFamily: "'Product Sans', sans-serif",
+            fontWeight: 400,
+            lineHeight: "100%",
+            letterSpacing: "0%",
+          }}
+        >
           {activeFindings.length} subscription issues detected across your AI stack
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
-        {filters.map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-              filter === f
-                ? "border-accent bg-accent/10 text-primary dark:text-accent"
-                : "border-border bg-card text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-            }`}
-          >
-            {f}
-          </button>
-        ))}
+      {/* Filter Tabs */}
+      <div className="md:px-[111px] px-8 w-full flex flex-wrap gap-2">
+        {filters.map((f) => {
+          const isActive = filter === f;
+          return (
+            <div key={f} className="nav-tab-border">
+              <button
+                onClick={() => setFilter(f)}
+                className={`nav-tab-content px-3 py-1.5 text-xs font-medium transition cursor-pointer ${
+                  isActive ? "nav-tab-active" : "nav-tab-inactive"
+                }`}
+              >
+                {f}
+              </button>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-[111px] md:px-[111px] max-w-[1400px] mx-auto w-full">
         {visible.map((f: any) => {
           const tool = activeTools.find((t: any) => t.id === f.toolId)!;
           const isOpen = expanded === f.id;
@@ -79,74 +101,171 @@ export function FindingsView({ auditResult }: FindingsViewProps) {
               layout
               whileHover={{ y: -2 }}
               transition={{ type: "spring", stiffness: 300, damping: 24 }}
-              className="rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition-shadow"
+              className="cut-br-border dashboard-box-border w-full max-w-[533px] min-h-[139px] flex flex-col"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-foreground">{tool?.name || "AI Subscription"}</div>
-                  <div className="text-xs text-muted-foreground">{tool?.vendor || "Vendor"}</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs text-muted-foreground/60">Monthly</div>
-                  <div className="text-sm font-semibold tabular-nums text-muted-foreground/80 line-through decoration-rose-500/60">
-                    ${tool?.monthlyCost || 0}
+              <div className="cut-br-content dashboard-box-content pt-5 pb-5 pr-5 pl-[42px] h-full flex flex-col justify-between flex-1">
+                {/* Top row */}
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div
+                      className="text-[#1E1E1E] dark:text-[#FFFFFF]"
+                      style={{
+                        fontFamily: "'Product Sans Medium', 'Product Sans', sans-serif",
+                        fontWeight: 500,
+                        fontSize: "16px",
+                        lineHeight: "100%",
+                        letterSpacing: "0%",
+                      }}
+                    >
+                      {tool?.name || "AI Subscription"}
+                    </div>
+                    <div
+                      className="text-[#B8B8B8]"
+                      style={{
+                        fontFamily: "'Product Sans', sans-serif",
+                        fontWeight: 400,
+                        fontSize: "12px",
+                        lineHeight: "100%",
+                        letterSpacing: "0%",
+                        marginTop: "6px",
+                      }}
+                    >
+                      {tool?.vendor || "Vendor"}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div
+                      className="text-[#1E1E1E] dark:text-[#FFFFFF]"
+                      style={{
+                        fontFamily: "'Product Sans Medium', 'Product Sans', sans-serif",
+                        fontWeight: 500,
+                        fontSize: "14px",
+                        lineHeight: "100%",
+                        letterSpacing: "0%",
+                      }}
+                    >
+                      MONTHLY
+                    </div>
+                    <div
+                      className="text-[#B8B8B8]"
+                      style={{
+                        fontFamily: "'Product Sans Medium', 'Product Sans', sans-serif",
+                        fontWeight: 500,
+                        fontSize: "16px",
+                        lineHeight: "100%",
+                        letterSpacing: "0%",
+                        textDecoration: "line-through",
+                        marginTop: "6px",
+                      }}
+                    >
+                      ${tool?.monthlyCost || 0}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="mt-3.5 flex flex-wrap gap-2">
-                <span
-                  className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide ${typeStyles[f.type as FindingType] || "bg-muted text-muted-foreground"}`}
-                >
-                  {f.type}
-                </span>
-                <span
-                  className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide ${confStyles[f.confidence as Confidence] || "bg-muted text-muted-foreground"}`}
-                >
-                  {f.confidence} Confidence
-                </span>
-                <span className="rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground tabular-nums">
-                  Save ${f.monthlySavings}/mo
-                </span>
-              </div>
-
-              <button
-                onClick={() => setExpanded(isOpen ? null : f.id)}
-                className="mt-5 flex w-full items-center justify-between text-left text-xs font-semibold text-muted-foreground hover:text-foreground"
-              >
-                <span>{isOpen ? "Hide reasoning" : "Why was this flagged?"}</span>
-                <motion.span animate={{ rotate: isOpen ? 180 : 0 }}>
-                  <ChevronDown className="h-3.5 w-3.5" />
-                </motion.span>
-              </button>
-
-              <AnimatePresence initial={false}>
-                {isOpen && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="mt-4 space-y-2.5 rounded-2xl border border-border bg-muted/20 p-4 text-xs text-foreground/80 leading-relaxed shadow-inner">
-                      <div className="flex items-center gap-1.5">
-                        <AlertCircle className="h-3.5 w-3.5 text-muted-foreground/60" />
-                        <span className="text-muted-foreground font-semibold">Detected by: </span>
-                        <span className="text-foreground font-medium">{f.agent}</span>
-                      </div>
-                      <div>{f.reasoning}</div>
-                      {f.suggestedAlternative && (
-                        <div className="rounded-xl border border-accent/25 bg-accent/5 p-3 text-primary dark:text-accent font-medium mt-1">
-                          Suggestion: {f.suggestedAlternative}
-                        </div>
-                      )}
+                {/* Bottom row */}
+                <div className="mt-4 space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Finding Type Button */}
+                    <div
+                      className="flex items-center justify-center text-center select-none text-[#505A18]"
+                      style={{
+                        width: "106px",
+                        height: "22px",
+                        background: "#F6FFCA",
+                        clipPath: "polygon(0 0, 100px 0, 106px 6px, 106px 22px, 6px 22px, 0 16px)",
+                        fontFamily: "'Product Sans', sans-serif",
+                        fontWeight: 400,
+                        fontSize: "12px",
+                        lineHeight: "100%",
+                      }}
+                    >
+                      {f.type}
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+
+                    {/* Confidence Button */}
+                    <div
+                      className="flex items-center justify-center text-center select-none text-[#1C542B]"
+                      style={{
+                        width: "106px",
+                        height: "22px",
+                        background: "#BAFFC4",
+                        clipPath: "polygon(0 0, 100px 0, 106px 6px, 106px 22px, 6px 22px, 0 16px)",
+                        fontFamily: "'Product Sans', sans-serif",
+                        fontWeight: 400,
+                        fontSize: "12px",
+                        lineHeight: "100%",
+                      }}
+                    >
+                      {f.confidence} Confidence
+                    </div>
+
+                    {/* Savings Button */}
+                    <div
+                      className="flex items-center justify-center text-center select-none text-[#1C4E54]"
+                      style={{
+                        width: "106px",
+                        height: "22px",
+                        background: "#BAF6FF",
+                        clipPath: "polygon(0 0, 100px 0, 106px 6px, 106px 22px, 6px 22px, 0 16px)",
+                        fontFamily: "'Product Sans', sans-serif",
+                        fontWeight: 400,
+                        fontSize: "12px",
+                        lineHeight: "100%",
+                      }}
+                    >
+                      Save ${f.monthlySavings}/mo
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setExpanded(isOpen ? null : f.id)}
+                    className="flex items-center gap-1 text-[#B8B8B8] hover:text-foreground/80 transition-colors"
+                    style={{
+                      fontFamily: "'Product Sans', sans-serif",
+                      fontWeight: 400,
+                      fontSize: "12px",
+                      lineHeight: "100%",
+                      letterSpacing: "0%",
+                    }}
+                  >
+                    <span>{isOpen ? "Hide reasoning" : "Why was this flagged?"}</span>
+                    <motion.span animate={{ rotate: isOpen ? 180 : 0 }}>
+                      <ChevronDown className="h-3 w-3" />
+                    </motion.span>
+                  </button>
+                </div>
+
+                {/* Reasoning Panel */}
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-4 space-y-2.5 rounded-xl border border-border/40 bg-muted/10 p-4 text-xs text-foreground/80 leading-relaxed shadow-inner">
+                        <div className="flex items-center gap-1.5">
+                          <AlertCircle className="h-3.5 w-3.5 text-muted-foreground/60" />
+                          <span className="text-muted-foreground font-semibold">Detected by: </span>
+                          <span className="text-foreground font-medium">{f.agent}</span>
+                        </div>
+                        <div>{f.reasoning}</div>
+                        {f.suggestedAlternative && (
+                          <div className="rounded-lg border border-accent/25 bg-accent/5 p-3 text-primary dark:text-accent font-medium mt-1">
+                            Suggestion: {f.suggestedAlternative}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </motion.div>
           );
         })}
+
       </div>
     </div>
   );

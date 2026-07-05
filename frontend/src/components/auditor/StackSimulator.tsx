@@ -193,23 +193,66 @@ export function StackSimulator({ auditResult }: StackSimulatorProps) {
   };
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-10 px-8 py-10">
+    <div className="mx-auto max-w-[1400px] py-10 space-y-8">
       {/* Page Header */}
-      <section className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
-        <div>
-          <div className="text-xs uppercase tracking-widest text-muted-foreground">What-If Analysis</div>
-          <h2 className="mt-1 text-2xl font-semibold text-foreground font-sans">Stack Simulator</h2>
+      <section className="md:px-[111px] px-8 w-full flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
+        <div className="space-y-2">
+          <h2
+            className="text-[#1E1E1E] dark:text-[#FFFFFF] text-[30px]"
+            style={{
+              fontFamily: "'Product Sans Medium', 'Product Sans', sans-serif",
+              fontWeight: 500,
+              lineHeight: "100%",
+              letterSpacing: "0%",
+            }}
+          >
+            Stack Simulator
+          </h2>
+          <p
+            className="text-[#B8B8B8] dark:text-[#828282] text-[18px]"
+            style={{
+              fontFamily: "'Product Sans', sans-serif",
+              fontWeight: 400,
+              lineHeight: "100%",
+              letterSpacing: "0%",
+            }}
+          >
+            What-If Analysis
+          </p>
         </div>
       </section>
 
       {/* Simulator Interface */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        {/* Input Panel */}
-        <div className="rounded-3xl border border-border bg-card p-6 shadow-sm h-fit">
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-foreground">Hypothetical scenario</h3>
-            <p className="text-xs text-muted-foreground">Describe a budget change or tool migration</p>
-          </div>
+      <div className="md:px-[111px] px-8 w-full">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          {/* Input Panel */}
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm h-fit">
+            <div className="mb-4">
+              <h3
+                className="text-[#1E1E1E] dark:text-[#FFFFFF]"
+                style={{
+                  fontFamily: "'Product Sans Medium', 'Product Sans', sans-serif",
+                  fontWeight: 500,
+                  fontSize: "16px",
+                  lineHeight: "100%",
+                  letterSpacing: "0%",
+                }}
+              >
+                Hypothetical scenario
+              </h3>
+              <p
+                className="text-[#B8B8B8] mt-1.5"
+                style={{
+                  fontFamily: "'Product Sans', sans-serif",
+                  fontWeight: 400,
+                  fontSize: "12px",
+                  lineHeight: "100%",
+                  letterSpacing: "0%",
+                }}
+              >
+                Describe a budget change or tool migration
+              </p>
+            </div>
 
           <form onSubmit={handleSimulate} className="space-y-4">
             <div>
@@ -276,8 +319,28 @@ export function StackSimulator({ auditResult }: StackSimulatorProps) {
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted/40 text-muted-foreground/60">
                   <Sparkles className="h-6 w-6" />
                 </div>
-                <h4 className="text-sm font-semibold text-foreground">Simulation Results</h4>
-                <p className="max-w-xs text-xs text-muted-foreground mt-1">
+                <h4
+                  className="text-[#1E1E1E] dark:text-[#FFFFFF]"
+                  style={{
+                    fontFamily: "'Product Sans Medium', 'Product Sans', sans-serif",
+                    fontWeight: 500,
+                    fontSize: "16px",
+                    lineHeight: "100%",
+                    letterSpacing: "0%",
+                  }}
+                >
+                  Simulation Results
+                </h4>
+                <p
+                  className="max-w-xs text-[#B8B8B8] mt-1.5"
+                  style={{
+                    fontFamily: "'Product Sans', sans-serif",
+                    fontWeight: 400,
+                    fontSize: "12px",
+                    lineHeight: "100%",
+                    letterSpacing: "0%",
+                  }}
+                >
                   Describe a hypothetical change on the left and run the simulation to see projected costs, savings, and organizational risk.
                 </p>
               </motion.div>
@@ -325,7 +388,16 @@ export function StackSimulator({ auditResult }: StackSimulatorProps) {
 
                 {/* Impact details */}
                 <div className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-5">
-                  <h4 className="text-sm font-semibold text-foreground border-b border-border pb-3">
+                  <h4
+                    className="text-[#1E1E1E] dark:text-[#FFFFFF] border-b border-border pb-3"
+                    style={{
+                      fontFamily: "'Product Sans Medium', 'Product Sans', sans-serif",
+                      fontWeight: 500,
+                      fontSize: "16px",
+                      lineHeight: "100%",
+                      letterSpacing: "0%",
+                    }}
+                  >
                     Impact & Risk Analysis
                   </h4>
 
@@ -388,5 +460,6 @@ export function StackSimulator({ auditResult }: StackSimulatorProps) {
         </div>
       </div>
     </div>
+  </div>
   );
 }
