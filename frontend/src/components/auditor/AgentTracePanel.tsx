@@ -111,7 +111,8 @@ export function AgentTracePanel({
                 fontWeight: 400,
               }}
             >
-              A multi-agent reasoning chain is parsing, categorizing, and checking your stack for leaks.
+              A multi-agent reasoning chain is parsing, categorizing, and checking your stack for
+              leaks.
             </p>
           </div>
         </section>
@@ -181,7 +182,8 @@ export function AgentTracePanel({
                           height: "22px",
                           background: getStepBg(isDone, isActive),
                           color: getStepText(isDone, isActive),
-                          clipPath: "polygon(0 0, 100px 0, 106px 6px, 106px 22px, 6px 22px, 0 16px)",
+                          clipPath:
+                            "polygon(0 0, 100px 0, 106px 6px, 106px 22px, 6px 22px, 0 16px)",
                           fontFamily: "'Product Sans', sans-serif",
                           fontWeight: 400,
                           fontSize: "12px",

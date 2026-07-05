@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FileText, Plus, Loader2, DollarSign, Calendar, ChevronRight, AlertCircle } from "lucide-react";
+import {
+  FileText,
+  Plus,
+  Loader2,
+  DollarSign,
+  Calendar,
+  ChevronRight,
+  AlertCircle,
+} from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 interface MyReportsPageProps {
@@ -105,7 +113,8 @@ export function MyReportsPage({ session, onNewAudit, onLoadReport }: MyReportsPa
           id: f.id,
           toolId: f.tool_id,
           type: f.finding_type,
-          confidence: f.confidence_score >= 0.8 ? "High" : f.confidence_score >= 0.5 ? "Medium" : "Low",
+          confidence:
+            f.confidence_score >= 0.8 ? "High" : f.confidence_score >= 0.5 ? "Medium" : "Low",
           agent: f.generated_by_agent,
           reasoning: f.description,
           suggestedAlternative: rec?.suggested_alternative,
@@ -176,21 +185,45 @@ export function MyReportsPage({ session, onNewAudit, onLoadReport }: MyReportsPa
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-12 space-y-8">
+    <div className="mx-auto max-w-[1400px] py-10 space-y-8 w-full">
       {/* Header Panel */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Audit Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+      <div className="md:px-[111px] px-8 w-full flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
+        <div className="space-y-2">
+          <h2
+            className="text-[#1E1E1E] dark:text-[#FFFFFF] text-[30px]"
+            style={{
+              fontFamily: "'Product Sans Medium', 'Product Sans', sans-serif",
+              fontWeight: 500,
+              lineHeight: "100%",
+              letterSpacing: "0%",
+            }}
+          >
+            Audit Dashboard
+          </h2>
+          <p
+            className="text-[#B8B8B8] dark:text-[#828282] text-[18px]"
+            style={{
+              fontFamily: "'Product Sans', sans-serif",
+              fontWeight: 400,
+              lineHeight: "100%",
+              letterSpacing: "0%",
+            }}
+          >
             Access and manage your company&apos;s past spend rationalization reports
           </p>
         </div>
-        <button
-          onClick={onNewAudit}
-          className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-xs font-semibold text-black shadow-lg shadow-accent/15 transition hover:bg-accent/90 cursor-pointer"
-        >
-          <Plus className="h-4 w-4" /> New Audit
-        </button>
+        <div className="nav-tab-border">
+          <button
+            onClick={onNewAudit}
+            className="nav-tab-content px-4 py-2.5 transition cursor-pointer nav-tab-active text-xs font-semibold text-black flex items-center gap-2"
+            style={{
+              fontFamily: "'Product Sans', sans-serif",
+              fontWeight: 400,
+            }}
+          >
+            <Plus className="h-3.5 w-3.5" /> New Audit
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -202,29 +235,64 @@ export function MyReportsPage({ session, onNewAudit, onLoadReport }: MyReportsPa
 
       {reports.length === 0 ? (
         /* EMPTY STATE */
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center justify-center rounded-3xl border border-border bg-card p-12 text-center shadow-sm"
-        >
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/40 text-muted-foreground/60">
-            <FileText className="h-7 w-7" />
-          </div>
-          <h3 className="text-lg font-semibold text-foreground">No reports yet</h3>
-          <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-            You haven&apos;t run or saved any spend audits. Upload a CSV invoice export to run an audit.
-          </p>
-          <button
-            onClick={onNewAudit}
-            className="mt-6 flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-accent/90 cursor-pointer"
+        <div className="md:px-[111px] px-8 w-full max-w-[883px] mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center rounded-3xl border border-[#8BFF9C] dark:border-[rgba(139,255,156,0.65)] bg-[#ffffff] dark:bg-[#000000] p-12 text-center shadow-sm"
           >
-            <Plus className="h-4 w-4" /> Run First Audit
-          </button>
-        </motion.div>
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/40 text-muted-foreground/60">
+              <FileText className="h-7 w-7" />
+            </div>
+            <h3
+              className="text-[#1E1E1E] dark:text-[#FFFFFF]"
+              style={{
+                fontFamily: "'Product Sans Medium', 'Product Sans', sans-serif",
+                fontWeight: 500,
+                fontSize: "16px",
+                lineHeight: "100%",
+                letterSpacing: "0%",
+              }}
+            >
+              No reports yet
+            </h3>
+            <p
+              className="mx-auto mt-2 max-w-sm text-[#828282] dark:text-[#B8B8B8]"
+              style={{
+                fontFamily: "'Product Sans', sans-serif",
+                fontWeight: 400,
+                fontSize: "12px",
+                lineHeight: "135%",
+              }}
+            >
+              You haven&apos;t run or saved any spend audits. Upload a CSV invoice export to run an
+              audit.
+            </p>
+            <div className="nav-tab-border mt-6">
+              <button
+                onClick={onNewAudit}
+                className="nav-tab-content px-5 py-2.5 transition cursor-pointer nav-tab-active text-sm font-semibold text-black flex items-center gap-2"
+                style={{
+                  fontFamily: "'Product Sans', sans-serif",
+                  fontWeight: 400,
+                }}
+              >
+                <Plus className="h-4 w-4" /> Run First Audit
+              </button>
+            </div>
+          </motion.div>
+        </div>
       ) : (
         /* REPORTS LIST */
-        <div className="space-y-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="md:px-[111px] px-8 w-full max-w-[883px] mx-auto space-y-4">
+          <h2
+            className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+            style={{
+              fontFamily: "'Product Sans Medium', 'Product Sans', sans-serif",
+              fontWeight: 500,
+              letterSpacing: "0.05em",
+            }}
+          >
             Saved Reports ({reports.length})
           </h2>
           <div className="grid gap-3">
@@ -234,17 +302,32 @@ export function MyReportsPage({ session, onNewAudit, onLoadReport }: MyReportsPa
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 onClick={() => handleLoadReportDetails(report)}
-                className="flex items-center justify-between rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:border-accent/40 hover:bg-accent/[0.01] cursor-pointer"
+                className="flex items-center justify-between rounded-2xl border border-[#8BFF9C] dark:border-[rgba(139,255,156,0.65)] bg-[#ffffff] dark:bg-[#000000] p-5 shadow-sm transition hover:border-accent/40 hover:bg-accent/[0.01] cursor-pointer"
               >
                 <div className="flex items-center gap-4 min-w-0">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted/30 text-foreground/75">
                     <FileText className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-sm font-semibold text-foreground truncate">
+                    <h3
+                      className="text-[#1E1E1E] dark:text-[#FFFFFF] truncate"
+                      style={{
+                        fontFamily: "'Product Sans Medium', 'Product Sans', sans-serif",
+                        fontWeight: 500,
+                        fontSize: "16px",
+                        lineHeight: "100%",
+                      }}
+                    >
                       AI Stack Audit Report
                     </h3>
-                    <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                    <div
+                      className="mt-1.5 flex items-center gap-3 text-[#828282] dark:text-[#B8B8B8]"
+                      style={{
+                        fontFamily: "'Product Sans', sans-serif",
+                        fontWeight: 400,
+                        fontSize: "12px",
+                      }}
+                    >
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         {new Date(report.generated_at).toLocaleDateString(undefined, {
@@ -259,10 +342,22 @@ export function MyReportsPage({ session, onNewAudit, onLoadReport }: MyReportsPa
 
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <div className="text-base font-bold text-accent">
+                    <div
+                      className="text-base font-bold text-accent"
+                      style={{
+                        fontFamily: "'Product Sans Medium', 'Product Sans', sans-serif",
+                        fontWeight: 500,
+                      }}
+                    >
                       Save ${Number(report.total_monthly_savings).toLocaleString()}/mo
                     </div>
-                    <div className="text-[10px] text-muted-foreground">
+                    <div
+                      className="text-[10px] text-[#828282] dark:text-[#B8B8B8] mt-0.5"
+                      style={{
+                        fontFamily: "'Product Sans', sans-serif",
+                        fontWeight: 400,
+                      }}
+                    >
                       ${Number(report.total_annual_savings).toLocaleString()}/yr est. savings
                     </div>
                   </div>
@@ -273,6 +368,7 @@ export function MyReportsPage({ session, onNewAudit, onLoadReport }: MyReportsPa
           </div>
         </div>
       )}
+
     </div>
   );
 }

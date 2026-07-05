@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { AuthCard } from "./AuthCard";
@@ -11,6 +11,7 @@ import { MyReportsPage } from "./MyReportsPage";
 import { StackSimulator } from "./StackSimulator";
 import { Sun, Moon, LogOut, User, Sparkles, Database } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
+import { toast } from "sonner";
 
 type Stage = "reports" | "upload" | "trace" | "app";
 type Tab = "dashboard" | "findings" | "recommendations" | "simulator";
@@ -22,22 +23,99 @@ const tabs: { id: Tab; label: string }[] = [
   { id: "simulator", label: "Simulator" },
 ];
 
+const FUNKY_COLORS = [
+  "#D4B4FF", // Neon Purple
+  "#FFAEF5", // Neon Pink
+  "#FFB69B", // Funky Coral
+  "#FFF29B", // Funky Gold
+  "#9BFAFF", // Neon Cyan
+  "#9BFFEB", // Turquoise Mint
+  "#FF9BAC", // Neon Rose
+  "#A6B4FC", // Periwinkle
+];
+
 export function AuditorApp() {
-  const [stage, setStage] = useState<Stage>("upload");
-  const [tab, setTab] = useState<Tab>("dashboard");
+  const [stage, setStage] = useState<Stage>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("auditor_stage");
+      if (saved) return saved as Stage;
+    }
+    return "upload";
+  });
+  const [tab, setTab] = useState<Tab>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("auditor_tab");
+      if (saved) return saved as Tab;
+    }
+    return "dashboard";
+  });
   const [session, setSession] = useState<Session | null>(null);
-  const [isDemo, setIsDemo] = useState(false);
+  const sessionRef = useRef<Session | null>(null);
+  const [isDemo, setIsDemo] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("auditor_is_demo") === "true";
+    }
+    return false;
+  });
   const [isDark, setIsDark] = useState(false);
   const [showSignOut, setShowSignOut] = useState(false);
-  
+  const [profileColor, setProfileColor] = useState("#D4B4FF");
+
   // Custom auth modal and navigation prompts
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAuthScreen, setShowAuthScreen] = useState(false);
 
   // Backend audit state
-  const [auditResult, setAuditResult] = useState<any>(null);
+  const [auditResult, setAuditResult] = useState<any>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("auditor_result");
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          return null;
+        }
+      }
+    }
+    return null;
+  });
   const [loadingAudit, setLoadingAudit] = useState(false);
+
+  // Sync state variables to localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("auditor_stage", stage);
+    }
+  }, [stage]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("auditor_tab", tab);
+    }
+  }, [tab]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("auditor_is_demo", String(isDemo));
+    }
+  }, [isDemo]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (auditResult) {
+        localStorage.setItem("auditor_result", JSON.stringify(auditResult));
+      } else {
+        localStorage.removeItem("auditor_result");
+      }
+    }
+  }, [auditResult]);
+
+  // Pick random funky profile color on mount
+  useEffect(() => {
+    const randomColor = FUNKY_COLORS[Math.floor(Math.random() * FUNKY_COLORS.length)];
+    setProfileColor(randomColor);
+  }, []);
 
   // Read dark mode state on mount
   useEffect(() => {
@@ -46,19 +124,55 @@ export function AuditorApp() {
     }
   }, []);
 
+  // Handle redirect from password reset
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("auth") === "signin") {
+        setShowAuthScreen(true);
+        toast.success("Password updated — please sign in");
+        // Clear search params
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    }
+  }, []);
+
   // Fetch session and set listener
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      sessionRef.current = session;
       if (session) {
-        setStage("reports");
+        if (typeof window !== "undefined" && !localStorage.getItem("auditor_stage")) {
+          setStage("upload");
+        }
       }
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (event === "SIGNED_OUT") {
+        setSession(null);
+        sessionRef.current = null;
+        setIsDemo(false);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("auditor_stage");
+          localStorage.removeItem("auditor_tab");
+          localStorage.removeItem("auditor_result");
+          localStorage.removeItem("auditor_is_demo");
+        }
+        setStage("upload");
+        setTab("dashboard");
+        setAuditResult(null);
+        return;
+      }
+
+      const wasLoggedOut = !sessionRef.current;
       setSession(newSession);
+      sessionRef.current = newSession;
+
       if (newSession) {
         setIsDemo(false);
         setShowAuthScreen(false);
@@ -67,7 +181,9 @@ export function AuditorApp() {
             triggerAuditRun(file, false);
             return null;
           } else {
-            setStage("reports");
+            if (wasLoggedOut) {
+              setStage("upload");
+            }
             return null;
           }
         });
@@ -93,11 +209,21 @@ export function AuditorApp() {
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn("Sign out exception:", e);
+    }
     setIsDemo(false);
     setAuditResult(null);
     setStage("upload");
     setTab("dashboard");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("auditor_stage");
+      localStorage.removeItem("auditor_tab");
+      localStorage.removeItem("auditor_result");
+      localStorage.removeItem("auditor_is_demo");
+    }
   };
 
   // Triggers the FastAPI multi-agent backend API call
@@ -248,15 +374,22 @@ export function AuditorApp() {
             {/* Auth / Profile details */}
             {session ? (
               <div className="relative">
-                <button
-                  onClick={() => setShowSignOut(!showSignOut)}
-                  className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground cursor-pointer"
-                >
-                  <span className="text-base select-none">👤</span>
-                  <span className="max-w-[120px] truncate font-semibold text-foreground">
-                    {session.user.user_metadata?.full_name || session.user.email?.split("@")[0]}
-                  </span>
-                </button>
+                <div className="profile-tab-border" style={{ backgroundColor: profileColor }}>
+                  <button
+                    onClick={() => setShowSignOut(!showSignOut)}
+                    className="profile-tab-content px-3.5 py-1.5 transition cursor-pointer flex items-center gap-2 text-xs font-semibold text-black"
+                    style={{
+                      fontFamily: "'Product Sans', sans-serif",
+                      fontWeight: 400,
+                      backgroundColor: profileColor,
+                    }}
+                  >
+                    <span className="text-sm select-none">👤</span>
+                    <span className="max-w-[120px] truncate">
+                      {session.user.user_metadata?.full_name || session.user.email?.split("@")[0]}
+                    </span>
+                  </button>
+                </div>
                 <AnimatePresence>
                   {showSignOut && (
                     <>
@@ -295,7 +428,7 @@ export function AuditorApp() {
                     style={{
                       fontFamily: "'Product Sans', sans-serif",
                       fontWeight: 400,
-                      fontSize: "14px"
+                      fontSize: "14px",
                     }}
                   >
                     Sign In
@@ -310,7 +443,7 @@ export function AuditorApp() {
                   style={{
                     fontFamily: "'Product Sans', sans-serif",
                     fontWeight: 400,
-                    fontSize: "14px"
+                    fontSize: "14px",
                   }}
                 >
                   Sign In
@@ -318,44 +451,103 @@ export function AuditorApp() {
               </div>
             )}
 
-            {session && (stage === "app" || stage === "upload") && (
-              <div className="nav-tab-border">
-                <button
-                  onClick={() => {
-                    setStage("reports");
-                    setTab("dashboard");
-                    setAuditResult(null);
-                  }}
-                  className="nav-tab-content px-4 py-1.5 transition cursor-pointer nav-tab-active flex items-center gap-1.5"
-                  style={{
-                    fontFamily: "'Product Sans', sans-serif",
-                    fontWeight: 400,
-                    fontSize: "14px"
-                  }}
-                >
-                  <Database className="h-3.5 w-3.5 text-black" /> Dashboard
-                </button>
-              </div>
+            {/* Logged in routing controls */}
+            {session && (
+              <>
+                {(stage === "app" || stage === "upload") && (
+                  <div className="nav-tab-border">
+                    <button
+                      onClick={() => {
+                        setStage("reports");
+                        setTab("dashboard");
+                      }}
+                      className="nav-tab-content px-4 py-1.5 transition cursor-pointer nav-tab-active flex items-center gap-1.5"
+                      style={{
+                        fontFamily: "'Product Sans', sans-serif",
+                        fontWeight: 400,
+                        fontSize: "14px",
+                      }}
+                    >
+                      <Database className="h-3.5 w-3.5 text-black" /> Audit History
+                    </button>
+                  </div>
+                )}
+                {(stage === "reports" || stage === "app") && (
+                  <div className="nav-tab-border">
+                    <button
+                      onClick={() => {
+                        setStage("upload");
+                      }}
+                      className="nav-tab-content px-4 py-1.5 transition cursor-pointer nav-tab-active"
+                      style={{
+                        fontFamily: "'Product Sans', sans-serif",
+                        fontWeight: 400,
+                        fontSize: "14px",
+                      }}
+                    >
+                      New Audit
+                    </button>
+                  </div>
+                )}
+                {(stage === "reports" || stage === "upload") && auditResult && (
+                  <div className="nav-tab-border">
+                    <button
+                      onClick={() => {
+                        setStage("app");
+                      }}
+                      className="nav-tab-content px-4 py-1.5 transition cursor-pointer nav-tab-active"
+                      style={{
+                        fontFamily: "'Product Sans', sans-serif",
+                        fontWeight: 400,
+                        fontSize: "14px",
+                      }}
+                    >
+                      View Analysis
+                    </button>
+                  </div>
+                )}
+              </>
             )}
 
-            {!session && stage === "app" && (
-              <div className="nav-tab-border">
-                <button
-                  onClick={() => {
-                    setStage("upload");
-                    setTab("dashboard");
-                    setAuditResult(null);
-                  }}
-                  className="nav-tab-content px-4 py-1.5 transition cursor-pointer nav-tab-active"
-                  style={{
-                    fontFamily: "'Product Sans', sans-serif",
-                    fontWeight: 400,
-                    fontSize: "14px"
-                  }}
-                >
-                  New audit
-                </button>
-              </div>
+            {/* Anonymous / Demo routing controls */}
+            {!session && (
+              <>
+                {stage === "app" && (
+                  <div className="nav-tab-border">
+                    <button
+                      onClick={() => {
+                        setStage("upload");
+                        setTab("dashboard");
+                      }}
+                      className="nav-tab-content px-4 py-1.5 transition cursor-pointer nav-tab-active"
+                      style={{
+                        fontFamily: "'Product Sans', sans-serif",
+                        fontWeight: 400,
+                        fontSize: "14px",
+                      }}
+                    >
+                      New Audit
+                    </button>
+                  </div>
+                )}
+                {stage === "upload" && auditResult && (
+                  <div className="nav-tab-border">
+                    <button
+                      onClick={() => {
+                        setStage("app");
+                      }}
+                      className="nav-tab-content px-4 py-1.5 transition cursor-pointer nav-tab-active"
+                      style={{
+                        fontFamily: "'Product Sans', sans-serif",
+                        fontWeight: 400,
+                        fontSize: "14px",
+                      }}
+                    >
+                      View Analysis
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -398,9 +590,9 @@ export function AuditorApp() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <AgentTracePanel 
+            <AgentTracePanel
               steps={auditResult?.agentTraceSteps}
-              onComplete={() => setTimeout(() => setStage("app"), 700)} 
+              onComplete={() => setTimeout(() => setStage("app"), 700)}
             />
           </motion.div>
         )}
@@ -437,7 +629,8 @@ export function AuditorApp() {
                 </div>
                 <h3 className="text-xl font-semibold text-foreground">Are you signed in?</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  To upload custom invoice exports and scan your stack, you must be signed in to your account. Guest users can only view demo audits.
+                  To upload custom invoice exports and scan your stack, you must be signed in to
+                  your account. Guest users can only view demo audits.
                 </p>
                 <div className="mt-6 flex flex-col gap-2">
                   <button

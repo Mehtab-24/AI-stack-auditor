@@ -6,7 +6,6 @@
   --color-accent-solid: var(--accent-solid);
 }
 
-
 @custom-variant dark (&:is(.dark *));
 
 /*
@@ -68,7 +67,7 @@
 
 :root {
   --radius: 0.75rem;
-  --background: #F3F5F9;
+  --background: #f3f5f9;
   --foreground: oklch(0.145 0.005 260); /* Near-black #0A0A0B */
   --card: oklch(1 0 0); /* White #FFFFFF */
   --card-foreground: oklch(0.145 0.005 260);
@@ -138,26 +137,30 @@
 }
 
 @font-face {
-  font-family: 'Product Sans Medium';
+  font-family: "Product Sans Medium";
   font-style: normal;
   font-weight: 500;
-  src: local('Product Sans Medium'), local('ProductSans-Medium'), url('https://fonts.cdnfonts.com/s/13998/ProductSans-Regular.woff') format('woff');
+  src:
+    local("Product Sans Medium"),
+    local("ProductSans-Medium"),
+    url("https://fonts.cdnfonts.com/s/13998/ProductSans-Regular.woff") format("woff");
 }
 
 @layer base {
   * {
     border-color: var(--color-border);
-    font-family: 'Product Sans', sans-serif !important;
+    font-family: "Product Sans", sans-serif !important;
   }
 
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: 'Product Sans', sans-serif;
+    font-family: "Product Sans", sans-serif;
   }
 
-  button, .btn {
-    font-family: 'Product Sans', sans-serif !important;
+  button,
+  .btn {
+    font-family: "Product Sans", sans-serif !important;
     font-weight: 400 !important;
     font-size: 14px !important;
     line-height: 100% !important;
@@ -168,7 +171,7 @@
 
 /* Logo Heading Typography */
 .logo-heading {
-  font-family: 'Product Sans Medium', 'Product Sans', sans-serif !important;
+  font-family: "Product Sans Medium", "Product Sans", sans-serif !important;
   font-weight: 500 !important;
   font-size: 20px !important;
   line-height: 100% !important;
@@ -177,12 +180,26 @@
 
 /* Custom Clipped Corners with Border Outline Preservation */
 .cut-br-border {
-  clip-path: polygon(32px 0, 100% 0, 100% calc(100% - 32px), calc(100% - 32px) 100%, 0 100%, 0 32px);
+  clip-path: polygon(
+    32px 0,
+    100% 0,
+    100% calc(100% - 32px),
+    calc(100% - 32px) 100%,
+    0 100%,
+    0 32px
+  );
   background-color: var(--border);
   padding: 1.5px;
 }
 .cut-br-content {
-  clip-path: polygon(32px 0, 100% 0, 100% calc(100% - 32px), calc(100% - 32px) 100%, 0 100%, 0 32px);
+  clip-path: polygon(
+    32px 0,
+    100% 0,
+    100% calc(100% - 32px),
+    calc(100% - 32px) 100%,
+    0 100%,
+    0 32px
+  );
 }
 
 .cut-tr-border {
@@ -227,49 +244,88 @@
 
 /* Navbar Tabs Colors and Borders */
 .nav-tab-border {
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px)) !important;
-  background-color: #BAFFC4 !important;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  ) !important;
+  background-color: #baffc4 !important;
   padding: 0.5px !important;
 }
 .nav-tab-content {
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px)) !important;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  ) !important;
 }
 .nav-tab-active {
-  background-color: #BAFFC4 !important;
+  background-color: #baffc4 !important;
   color: #000000 !important;
 }
 .nav-tab-inactive {
-  background-color: #E6E6E6 !important;
+  background-color: #e6e6e6 !important;
   color: #555555 !important;
 }
 .dark .nav-tab-inactive {
-  background-color: #1A1C2E !important;
-  color: #B8B8B8 !important;
+  background-color: #1a1c2e !important;
+  color: #b8b8b8 !important;
+}
+
+
+/* Funky Profile Tab Colors and Borders */
+.profile-tab-border {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  ) !important;
+  padding: 0.5px !important;
+}
+.profile-tab-content {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  ) !important;
+  color: #000000 !important;
 }
 
 /* Dashboard Boxes (Metrics and Containers) */
 .dashboard-box-border {
-  background-color: #8BFF9C !important;
+  background-color: #8bff9c !important;
   padding: 0.75px !important;
 }
 .dashboard-box-content {
-  background-color: #FFFFFF !important;
+  background-color: #ffffff !important;
 }
 .dashboard-box-heading {
-  font-family: 'Product Sans Medium', 'Product Sans', sans-serif !important;
+  font-family: "Product Sans Medium", "Product Sans", sans-serif !important;
   font-weight: 500 !important;
   font-size: 16px !important;
   line-height: 100% !important;
   letter-spacing: 0% !important;
-  color: #B8B8B8 !important;
+  color: #b8b8b8 !important;
 }
 .dashboard-box-value {
-  font-family: 'Product Sans Medium', 'Product Sans', sans-serif !important;
+  font-family: "Product Sans Medium", "Product Sans", sans-serif !important;
   font-weight: 500 !important;
   font-size: 40px !important;
   line-height: 100% !important;
   letter-spacing: 0% !important;
-  color: #1E1E1E !important;
+  color: #1e1e1e !important;
 }
 
 /* Professional Dark Mode Overrides - preserves Light Mode hex colors */
@@ -280,10 +336,10 @@
   background-color: #000000 !important;
 }
 .dark .dashboard-box-heading {
-  color: #8A8A93 !important;
+  color: #8a8a93 !important;
 }
 .dark .dashboard-box-value {
-  color: #FFFFFF !important;
+  color: #ffffff !important;
 }
 
 /* Perspective Grid Background */
@@ -303,7 +359,7 @@
   height: 200%;
   top: 38%; /* Horizon aligns exactly at the top level of the box */
   left: -50%;
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(139, 255, 156, 0.28) 1.5px, transparent 1.5px),
     linear-gradient(to bottom, rgba(139, 255, 156, 0.28) 1.5px, transparent 1.5px);
   background-size: 80px 80px;
@@ -316,7 +372,7 @@
   width: 883px !important;
   height: 363px !important;
   clip-path: polygon(0 0, 803px 0, 883px 80px, 883px 363px, 80px 363px, 0 283px) !important;
-  background-color: #FFFFFF !important;
+  background-color: #ffffff !important;
 }
 .dark .upload-box-content {
   background-color: #000000 !important;
@@ -327,7 +383,7 @@
   width: 128px !important;
   height: 37px !important;
   clip-path: polygon(0 0, 118px 0, 128px 10px, 128px 37px, 10px 37px, 0 27px) !important;
-  background-color: #BAFFC4 !important;
+  background-color: #baffc4 !important;
   padding: 0.5px !important;
   display: inline-block !important;
 }
@@ -336,8 +392,8 @@
   height: 100% !important;
   clip-path: polygon(0 0, 118px 0, 128px 10px, 128px 37px, 10px 37px, 0 27px) !important;
   background-color: #121212 !important;
-  color: #FFFFFF !important;
-  font-family: 'Product Sans', sans-serif !important;
+  color: #ffffff !important;
+  font-family: "Product Sans", sans-serif !important;
   font-weight: 400 !important;
   font-size: 14px !important;
   display: flex !important;
@@ -347,5 +403,5 @@
 }
 .choose-file-content:hover {
   background-color: #1e1e1e !important;
-  color: #BAFFC4 !important;
+  color: #baffc4 !important;
 }

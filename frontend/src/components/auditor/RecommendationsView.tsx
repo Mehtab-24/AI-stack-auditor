@@ -92,7 +92,8 @@ export function RecommendationsView({ auditResult }: RecommendationsViewProps) {
 
         if (!business) return;
 
-        const dbStatus = newStatus === "approved" ? "approved" : newStatus === "dismissed" ? "dismissed" : "draft";
+        const dbStatus =
+          newStatus === "approved" ? "approved" : newStatus === "dismissed" ? "dismissed" : "draft";
 
         // Query related findings
         const { data: dbFindings } = await supabase
@@ -204,7 +205,8 @@ export function RecommendationsView({ auditResult }: RecommendationsViewProps) {
                           height: "22px",
                           background: getActionBg(r.action),
                           color: getActionText(r.action),
-                          clipPath: "polygon(0 0, 100px 0, 106px 6px, 106px 22px, 6px 22px, 0 16px)",
+                          clipPath:
+                            "polygon(0 0, 100px 0, 106px 6px, 106px 22px, 6px 22px, 0 16px)",
                           fontFamily: "'Product Sans', sans-serif",
                           fontWeight: 400,
                           fontSize: "12px",

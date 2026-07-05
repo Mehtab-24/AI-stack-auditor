@@ -1,12 +1,18 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, AlertCircle } from "lucide-react";
-import { findings as mockFindings, tools as mockTools, type FindingType, type Confidence } from "@/lib/mockData";
+import {
+  findings as mockFindings,
+  tools as mockTools,
+  type FindingType,
+  type Confidence,
+} from "@/lib/mockData";
 
 const typeStyles: Record<FindingType, string> = {
   Duplicate: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/25",
   Underused: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/25",
-  "Overpriced Tier": "bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300 border-fuchsia-500/25",
+  "Overpriced Tier":
+    "bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300 border-fuchsia-500/25",
   "Inactive Seats": "bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/25",
   "Hidden Add-on": "bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/25",
   "Renewal Risk": "bg-orange-500/10 text-orange-700 dark:text-orange-300 border-orange-500/25",
@@ -40,7 +46,8 @@ export function FindingsView({ auditResult }: FindingsViewProps) {
   const activeTools = auditResult?.tools ?? mockTools;
 
   const visible = useMemo(
-    () => (filter === "All" ? activeFindings : activeFindings.filter((f: any) => f.type === filter)),
+    () =>
+      filter === "All" ? activeFindings : activeFindings.filter((f: any) => f.type === filter),
     [filter, activeFindings],
   );
 
@@ -265,7 +272,6 @@ export function FindingsView({ auditResult }: FindingsViewProps) {
             </motion.div>
           );
         })}
-
       </div>
     </div>
   );

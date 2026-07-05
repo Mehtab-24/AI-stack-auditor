@@ -26,7 +26,7 @@ function ResetPasswordScreen() {
     if (/[A-Z]/.test(pass)) score++;
     if (/[0-9]/.test(pass)) score++;
     if (/[^A-Za-z0-9]/.test(pass)) score++;
-    
+
     if (score <= 2) return "Weak";
     if (score === 3) return "Medium";
     return "Strong";
@@ -70,8 +70,8 @@ function ResetPasswordScreen() {
 
       setSuccess(true);
       setTimeout(() => {
-        navigate({ to: "/" });
-      }, 2000);
+        window.location.href = "/?auth=signin";
+      }, 1500);
     } catch (err: any) {
       console.error("Password update error:", err);
       setError(err.message || "Failed to update password. Please try again.");
@@ -96,9 +96,7 @@ function ResetPasswordScreen() {
           <h2 className="text-3xl font-semibold tracking-tight text-foreground">
             Set New Password
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Please enter your new password below
-          </p>
+          <p className="mt-2 text-sm text-muted-foreground">Please enter your new password below</p>
         </div>
 
         {/* Success Alert */}
@@ -165,7 +163,10 @@ function ResetPasswordScreen() {
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-xs font-semibold text-muted-foreground">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-xs font-semibold text-muted-foreground"
+            >
               Confirm New Password
             </label>
             <div className="relative mt-1">
@@ -202,11 +203,7 @@ function ResetPasswordScreen() {
             disabled={loading || success}
             className="flex w-full items-center justify-center rounded-2xl bg-accent py-3 text-sm font-semibold text-black shadow-lg shadow-accent/20 transition hover:bg-accent/90 disabled:opacity-50 cursor-pointer"
           >
-            {loading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              "Update Password"
-            )}
+            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Update Password"}
           </button>
         </form>
       </motion.div>

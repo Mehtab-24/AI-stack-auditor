@@ -28,7 +28,6 @@ export function UploadPanel({ onAnalyze }: UploadPanelProps) {
 
   return (
     <div className="relative min-h-[85vh] w-full flex flex-col items-center justify-start pt-16 px-6 overflow-hidden">
-      
       {/* Receding Perspective Grid Floor */}
       <div className="perspective-grid-container">
         <div className="perspective-grid" />
@@ -41,34 +40,38 @@ export function UploadPanel({ onAnalyze }: UploadPanelProps) {
         transition={{ duration: 0.5 }}
         className="mb-8 text-center relative z-10 select-none max-w-4xl w-full"
       >
-        <h1 
+        <h1
           className="text-[70px] tracking-tight text-[#1E1E1E] dark:text-[#FFFFFF] mb-4 text-center"
           style={{
             fontFamily: "'Product Sans Medium', 'Product Sans', sans-serif",
             fontWeight: 500,
             lineHeight: "100%",
-            letterSpacing: "0%"
+            letterSpacing: "0%",
           }}
         >
           AI Stack Auditor
         </h1>
-        <p 
+        <p
           className="text-[20px] max-w-3xl mx-auto leading-none text-center"
           style={{
             fontFamily: "'Product Sans', sans-serif",
             fontWeight: 400,
             lineHeight: "125%",
             letterSpacing: "0%",
-            color: "#797979"
+            color: "#797979",
           }}
         >
-          Upload your SaaS invoice export. We&apos;ll find overlapping, underused, and overpriced<br className="hidden md:inline" />
+          Upload your SaaS invoice export. We&apos;ll find overlapping, underused, and overpriced
+          <br className="hidden md:inline" />
           AI Subscriptions and tell you exactly, where to make the change!
         </p>
       </motion.div>
 
       {/* Upload Box Container Wrapper with Corner Dots and Crisp SVG Border */}
-      <div className="relative w-[883px] h-[363px] z-10" style={{ filter: 'drop-shadow(0 25px 15px rgba(0, 0, 0, 0.08))' }}>
+      <div
+        className="relative w-[883px] h-[363px] z-10"
+        style={{ filter: "drop-shadow(0 25px 15px rgba(0, 0, 0, 0.08))" }}
+      >
         {/* Upload Box Content Card */}
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
@@ -84,25 +87,25 @@ export function UploadPanel({ onAnalyze }: UploadPanelProps) {
           className="upload-box-content flex flex-col items-center justify-center p-8 cursor-default absolute inset-0 w-full h-full"
         >
           <UploadCloud className="mb-5 h-12 w-12 text-muted-foreground/40" />
-          <p 
+          <p
             className="text-[14px] text-foreground mb-1"
             style={{
               fontFamily: "'Product Sans', sans-serif",
-              fontWeight: 400
+              fontWeight: 400,
             }}
           >
             Drag &amp; drop your CSV, XLSX, or PDF invoice export
           </p>
-          <p 
+          <p
             className="text-[12px] text-muted-foreground/60 mb-5"
             style={{
               fontFamily: "'Product Sans', sans-serif",
-              fontWeight: 400
+              fontWeight: 400,
             }}
           >
             or
           </p>
-          
+
           <div className="flex items-center justify-center gap-4">
             <input
               type="file"
@@ -130,7 +133,7 @@ export function UploadPanel({ onAnalyze }: UploadPanelProps) {
                   fontFamily: "'Product Sans', sans-serif",
                   fontWeight: 400,
                   fontSize: "14px",
-                  height: "100%"
+                  height: "100%",
                 }}
               >
                 Use Demo Dataset &rarr;
@@ -140,10 +143,14 @@ export function UploadPanel({ onAnalyze }: UploadPanelProps) {
         </motion.div>
 
         {/* Mathematically Crisp Green Vector Outline Overlay */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none z-20" viewBox="0 0 883 363" fill="none">
-          <path 
-            d="M 0.5 0.5 L 802.5 0.5 L 882.5 80.5 L 882.5 362.5 L 80.5 362.5 L 0.5 282.5 Z" 
-            stroke="#8BFF9C" 
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none z-20"
+          viewBox="0 0 883 363"
+          fill="none"
+        >
+          <path
+            d="M 0.5 0.5 L 802.5 0.5 L 882.5 80.5 L 882.5 362.5 L 80.5 362.5 L 0.5 282.5 Z"
+            stroke="#8BFF9C"
             strokeWidth="1"
             vectorEffect="non-scaling-stroke"
           />
@@ -151,12 +158,30 @@ export function UploadPanel({ onAnalyze }: UploadPanelProps) {
 
         {/* Small bright green square dots on the outer card vertices */}
         <div className="absolute inset-0 pointer-events-none z-30">
-          <div className="absolute w-[6px] h-[6px] bg-[#8BFF9C] border border-black/35" style={{ top: 0, left: 0, transform: 'translate(-50%, -50%)' }} />
-          <div className="absolute w-[6px] h-[6px] bg-[#8BFF9C] border border-black/35" style={{ top: 0, left: 'calc(100% - 80px)', transform: 'translate(-50%, -50%)' }} />
-          <div className="absolute w-[6px] h-[6px] bg-[#8BFF9C] border border-black/35" style={{ top: 80, left: '100%', transform: 'translate(-50%, -50%)' }} />
-          <div className="absolute w-[6px] h-[6px] bg-[#8BFF9C] border border-black/35" style={{ top: '100%', left: '100%', transform: 'translate(-50%, -50%)' }} />
-          <div className="absolute w-[6px] h-[6px] bg-[#8BFF9C] border border-black/35" style={{ top: '100%', left: 80, transform: 'translate(-50%, -50%)' }} />
-          <div className="absolute w-[6px] h-[6px] bg-[#8BFF9C] border border-black/35" style={{ top: 'calc(100% - 80px)', left: 0, transform: 'translate(-50%, -50%)' }} />
+          <div
+            className="absolute w-[6px] h-[6px] bg-[#8BFF9C] border border-black/35"
+            style={{ top: 0, left: 0, transform: "translate(-50%, -50%)" }}
+          />
+          <div
+            className="absolute w-[6px] h-[6px] bg-[#8BFF9C] border border-black/35"
+            style={{ top: 0, left: "calc(100% - 80px)", transform: "translate(-50%, -50%)" }}
+          />
+          <div
+            className="absolute w-[6px] h-[6px] bg-[#8BFF9C] border border-black/35"
+            style={{ top: 80, left: "100%", transform: "translate(-50%, -50%)" }}
+          />
+          <div
+            className="absolute w-[6px] h-[6px] bg-[#8BFF9C] border border-black/35"
+            style={{ top: "100%", left: "100%", transform: "translate(-50%, -50%)" }}
+          />
+          <div
+            className="absolute w-[6px] h-[6px] bg-[#8BFF9C] border border-black/35"
+            style={{ top: "100%", left: 80, transform: "translate(-50%, -50%)" }}
+          />
+          <div
+            className="absolute w-[6px] h-[6px] bg-[#8BFF9C] border border-black/35"
+            style={{ top: "calc(100% - 80px)", left: 0, transform: "translate(-50%, -50%)" }}
+          />
         </div>
       </div>
 
@@ -170,7 +195,7 @@ export function UploadPanel({ onAnalyze }: UploadPanelProps) {
           fontFamily: "'Product Sans', sans-serif",
           fontWeight: 400,
           lineHeight: "100%",
-          letterSpacing: "0%"
+          letterSpacing: "0%",
         }}
       >
         Prototype : no files are uploaded. Demo dataset triggers the full flow

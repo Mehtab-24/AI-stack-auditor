@@ -1,14 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-  Tooltip,
-  Cell,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
 import { Download, Save, Sparkles, Loader2, CheckCircle } from "lucide-react";
@@ -46,20 +38,24 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
   const activeFindings = auditResult?.findings ?? mockFindings;
   const activeRecs = auditResult?.recommendations ?? mockRecommendations;
 
-  const currentMonthlySavings = auditResult?.report?.totalMonthlySavings ?? 
+  const currentMonthlySavings =
+    auditResult?.report?.totalMonthlySavings ??
     activeFindings.reduce((s: number, f: any) => s + f.monthlySavings, 0);
-  const currentAnnualSavings = auditResult?.report?.totalAnnualSavings ?? (currentMonthlySavings * 12);
-  const currentToolsFlagged = auditResult?.report?.totalToolsFlagged ?? 
-    activeTools.filter((t: any) => t.flagged).length;
+  const currentAnnualSavings =
+    auditResult?.report?.totalAnnualSavings ?? currentMonthlySavings * 12;
+  const currentToolsFlagged =
+    auditResult?.report?.totalToolsFlagged ?? activeTools.filter((t: any) => t.flagged).length;
   const currentToolsDiscovered = auditResult?.report?.totalToolsDiscovered ?? activeTools.length;
 
-  const currentSpendByCategory = auditResult?.tools ? (() => {
-    const map = new Map<string, number>();
-    for (const t of auditResult.tools) {
-      map.set(t.category, (map.get(t.category) ?? 0) + t.monthlyCost);
-    }
-    return Array.from(map.entries()).map(([category, spend]) => ({ category, spend }));
-  })() : spendByCategory;
+  const currentSpendByCategory = auditResult?.tools
+    ? (() => {
+        const map = new Map<string, number>();
+        for (const t of auditResult.tools) {
+          map.set(t.category, (map.get(t.category) ?? 0) + t.monthlyCost);
+        }
+        return Array.from(map.entries()).map(([category, spend]) => ({ category, spend }));
+      })()
+    : spendByCategory;
 
   const stats = [
     { label: "Annual savings", value: currentAnnualSavings, prefix: "$" },
@@ -74,7 +70,7 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
       // 1. Cover Header
       doc.setFillColor(15, 15, 18);
       doc.rect(0, 0, 210, 45, "F");
-      
+
       doc.setFont("Helvetica", "bold");
       doc.setFontSize(22);
       doc.setTextColor(255, 255, 255);
@@ -107,13 +103,17 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
       doc.setFontSize(13);
       doc.setTextColor(30, 30, 30);
       doc.text("ITEMIZED WASTE FINDINGS", 14, 115);
-      doc.text("---------------------------------------------------------------------------------------------------------", 14, 120);
+      doc.text(
+        "---------------------------------------------------------------------------------------------------------",
+        14,
+        120,
+      );
 
       // 4. List Findings
       let y = 128;
       activeFindings.forEach((f: any, idx: number) => {
         const tool = activeTools.find((t: any) => t.id === f.toolId)!;
-        
+
         // Page break safety check
         if (y > 265) {
           doc.addPage();
@@ -123,29 +123,33 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
         doc.setFont("Helvetica", "bold");
         doc.setFontSize(10);
         doc.setTextColor(30, 30, 30);
-        doc.text(`${idx + 1}. ${tool?.name || "AI Tool"} (${f.type}) — Save $${f.monthlySavings}/mo`, 14, y);
-        
+        doc.text(
+          `${idx + 1}. ${tool?.name || "AI Tool"} (${f.type}) — Save $${f.monthlySavings}/mo`,
+          14,
+          y,
+        );
+
         y += 5;
         doc.setFont("Helvetica", "normal");
         doc.setFontSize(9);
         doc.setTextColor(90, 90, 90);
-        
+
         const splitReasoning = doc.splitTextToSize(`Reasoning: ${f.reasoning}`, 180);
         doc.text(splitReasoning, 14, y);
         y += splitReasoning.length * 4.5 + 4;
-        
+
         if (f.suggestedAlternative) {
           doc.setFont("Helvetica", "bold");
           doc.setTextColor(21, 122, 60);
           doc.text(`Actionable Alternative: ${f.suggestedAlternative}`, 14, y);
           y += 6;
         }
-        
+
         y += 3; // spacing between findings
       });
 
       // Save PDF file
-      doc.save(`AI-Stack-Audit-Report-${new Date().toISOString().split('T')[0]}.pdf`);
+      doc.save(`AI-Stack-Audit-Report-${new Date().toISOString().split("T")[0]}.pdf`);
       toast.success("PDF audit report downloaded successfully!");
     } catch (error) {
       console.error(error);
@@ -153,12 +157,35 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
     }
   };
 
+  const normalizeFindingType = (type: string): string | null => {
+    if (!type) return null;
+    const clean = type.toLowerCase().trim().replace(/[-_]/g, " ");
+    if (clean.includes("duplicate") || clean.includes("overlap") || clean.includes("redundant") || clean.includes("consolidate")) return "Duplicate";
+    if (clean.includes("underused") || clean.includes("underuse") || clean.includes("underutili") || clean.includes("utili") || clean.includes("unused")) return "Underused";
+    if (clean.includes("price") || clean.includes("tier") || clean.includes("cost") || clean.includes("overprice")) return "Overpriced Tier";
+    if (clean.includes("seat") || clean.includes("inactive")) return "Inactive Seats";
+    if (clean.includes("addon") || clean.includes("add on") || clean.includes("hidden")) return "Hidden Add-on";
+    if (clean.includes("renewal") || clean.includes("risk") || clean.includes("expire")) return "Renewal Risk";
+    return null;
+  };
+
+  const normalizeActionType = (action: string): string | null => {
+    if (!action) return null;
+    const clean = action.toLowerCase().trim().replace(/[-_]/g, " ");
+    if (clean.includes("retain") || clean.includes("keep") || clean.includes("save")) return "Retain";
+    if (clean.includes("downgrade") || clean.includes("lower") || clean.includes("reduce")) return "Downgrade";
+    if (clean.includes("cancel") || clean.includes("remove") || clean.includes("delete")) return "Cancel";
+    if (clean.includes("consolidate") || clean.includes("merge") || clean.includes("combine")) return "Consolidate";
+    if (clean.includes("renewal") || clean.includes("review")) return "Review Renewal";
+    return null;
+  };
+
   const handleSaveReport = async () => {
     if (!session) {
       toast.error("Please sign in to save reports to your account.");
       return;
     }
-    
+
     setSaving(true);
     try {
       // 1. Get user business record
@@ -211,48 +238,77 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
       if (toolsError) throw toolsError;
 
       // 3. Insert findings
-      const findingsToInsert = activeFindings.map((f: any) => {
+      const findingsToInsert: any[] = [];
+      const findingIdMap = new Map<string, string>(); // client-side ID -> DB ID
+
+      activeFindings.forEach((f: any) => {
+        const mappedType = normalizeFindingType(f.type);
+        if (!mappedType) {
+          console.warn("Skipping finding due to check constraint mismatch:", f);
+          return;
+        }
+
         const correspondingTool = insertedTools.find(
-          (it) => it.tool_name === activeTools.find((ot: any) => ot.id === f.toolId)?.name
+          (it) => it.tool_name === activeTools.find((ot: any) => ot.id === f.toolId)?.name,
         );
-        return {
+
+        findingsToInsert.push({
           business_id: businessId,
           tool_id: correspondingTool?.id || null,
-          finding_type: f.type,
+          finding_type: mappedType,
           description: f.reasoning,
           confidence_score: f.confidence === "High" ? 0.9 : f.confidence === "Medium" ? 0.6 : 0.3,
           generated_by_agent: f.agent,
-        };
+          _client_id: f.id, // temporary tracking key
+        });
       });
 
-      const { data: insertedFindings, error: findingsError } = await supabase
-        .from("findings")
-        .insert(findingsToInsert)
-        .select();
+      if (findingsToInsert.length > 0) {
+        const cleanFindings = findingsToInsert.map(({ _client_id, ...rest }) => rest);
+        const { data: insertedFindings, error: findingsError } = await supabase
+          .from("findings")
+          .insert(cleanFindings)
+          .select();
 
-      if (findingsError) throw findingsError;
+        if (findingsError) throw findingsError;
+
+        if (insertedFindings && insertedFindings.length === findingsToInsert.length) {
+          insertedFindings.forEach((dbFinding, index) => {
+            const originalId = findingsToInsert[index]._client_id;
+            findingIdMap.set(originalId, dbFinding.id);
+          });
+        }
+      }
 
       // 4. Insert recommendations
-      const recsToInsert = activeRecs.map((r: any) => {
-        const originalFinding = activeFindings.find((f: any) => r.findingId === f.id)!;
-        const matchingFinding = insertedFindings.find(
-          (f) => f.finding_type === originalFinding.type && f.description === originalFinding.reasoning
-        );
-        return {
-          finding_id: matchingFinding?.id,
-          action_type: r.action,
+      const recsToInsert: any[] = [];
+      activeRecs.forEach((r: any) => {
+        const mappedAction = normalizeActionType(r.action);
+        if (!mappedAction) {
+          console.warn("Skipping recommendation due to check constraint mismatch:", r);
+          return;
+        }
+
+        const dbFindingId = findingIdMap.get(r.findingId);
+        if (!dbFindingId) {
+          console.warn("Skipping recommendation because parent finding was skipped or not found in DB:", r);
+          return;
+        }
+
+        recsToInsert.push({
+          finding_id: dbFindingId,
+          action_type: mappedAction,
           suggested_alternative: r.rationale,
           estimated_monthly_savings: r.monthlySavings,
           estimated_annual_savings: r.annualSavings,
           status: "draft",
-        };
+        });
       });
 
-      const { error: recsError } = await supabase
-        .from("recommendations")
-        .insert(recsToInsert);
-
-      if (recsError) throw recsError;
+      if (recsToInsert.length > 0) {
+        const { error: recsError } = await supabase.from("recommendations").insert(recsToInsert);
+        if (recsError) throw recsError;
+      }
 
       // 5. Insert final report summary
       const { error: reportError } = await supabase.from("reports").insert({
@@ -303,24 +359,41 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
         </div>
         <div className="flex items-center gap-4">
           {session && (
-            <button
-              onClick={handleSaveReport}
-              disabled={saving || isSaved}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold shadow-sm transition ${
-                isSaved
-                  ? "bg-muted text-muted-foreground border border-border"
-                  : "bg-card border border-border text-foreground hover:bg-muted/40"
-              }`}
-            >
-              {saving ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : isSaved ? (
-                <CheckCircle className="h-3.5 w-3.5 text-accent" />
-              ) : (
-                <Save className="h-3.5 w-3.5" />
-              )}
-              {saving ? "Saving..." : isSaved ? "Saved" : "Save Report"}
-            </button>
+            isSaved ? (
+              <div className="nav-tab-border" style={{ backgroundColor: isDark ? "#1a1c2e" : "#e6e6e6" }}>
+                <button
+                  disabled
+                  className="nav-tab-content px-4 py-2.5 text-xs font-semibold flex items-center gap-2 cursor-not-allowed"
+                  style={{
+                    fontFamily: "'Product Sans', sans-serif",
+                    fontWeight: 400,
+                    backgroundColor: isDark ? "#1a1c2e" : "#e6e6e6",
+                    color: isDark ? "#b8b8b8" : "#555555",
+                  }}
+                >
+                  <CheckCircle className="h-3.5 w-3.5 text-emerald-500" /> Saved
+                </button>
+              </div>
+            ) : (
+              <div className="nav-tab-border">
+                <button
+                  onClick={handleSaveReport}
+                  disabled={saving}
+                  className="nav-tab-content px-4 py-2.5 transition cursor-pointer nav-tab-active text-xs font-semibold text-black flex items-center gap-2"
+                  style={{
+                    fontFamily: "'Product Sans', sans-serif",
+                    fontWeight: 400,
+                  }}
+                >
+                  {saving ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Save className="h-3.5 w-3.5" />
+                  )}
+                  {saving ? "Saving..." : "Save Report"}
+                </button>
+              </div>
+            )
           )}
           <div className="nav-tab-border">
             <button
@@ -351,8 +424,8 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
           <CountUp to={currentMonthlySavings} prefix="$" suffix="/mo" />
         </motion.div>
         <p className="mx-auto mt-4 max-w-lg text-sm text-muted-foreground leading-relaxed">
-          Across your AI subscriptions. Review the findings and approve actions to lock in
-          savings — nothing is cancelled automatically.
+          Across your AI subscriptions. Review the findings and approve actions to lock in savings —
+          nothing is cancelled automatically.
         </p>
       </section>
 
@@ -367,9 +440,7 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
             className="cut-br-border dashboard-box-border"
           >
             <div className="cut-br-content dashboard-box-content p-6 h-full flex flex-col justify-between">
-              <div className="dashboard-box-heading uppercase">
-                {s.label}
-              </div>
+              <div className="dashboard-box-heading uppercase">{s.label}</div>
               <div className="dashboard-box-value mt-2">
                 <CountUp to={s.value} prefix={s.prefix ?? ""} />
               </div>
