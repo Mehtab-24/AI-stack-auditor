@@ -152,14 +152,14 @@ const FUNKY_COLORS = [
 export function AuditorApp() {
   const [stage, setStage] = useState<Stage>(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("auditor_stage");
+      const saved = sessionStorage.getItem("auditor_stage");
       if (saved) return saved as Stage;
     }
     return "upload";
   });
   const [tab, setTab] = useState<Tab>(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("auditor_tab");
+      const saved = sessionStorage.getItem("auditor_tab");
       if (saved) return saved as Tab;
     }
     return "dashboard";
@@ -168,7 +168,7 @@ export function AuditorApp() {
   const sessionRef = useRef<Session | null>(null);
   const [isDemo, setIsDemo] = useState(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("auditor_is_demo") === "true";
+      return sessionStorage.getItem("auditor_is_demo") === "true";
     }
     return false;
   });
@@ -184,7 +184,7 @@ export function AuditorApp() {
   // Backend audit state
   const [auditResult, setAuditResult] = useState<any>(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("auditor_result");
+      const saved = sessionStorage.getItem("auditor_result");
       if (saved) {
         try {
           return JSON.parse(saved);
@@ -197,31 +197,31 @@ export function AuditorApp() {
   });
   const [loadingAudit, setLoadingAudit] = useState(false);
 
-  // Sync state variables to localStorage
+  // Sync state variables to sessionStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("auditor_stage", stage);
+      sessionStorage.setItem("auditor_stage", stage);
     }
   }, [stage]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("auditor_tab", tab);
+      sessionStorage.setItem("auditor_tab", tab);
     }
   }, [tab]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("auditor_is_demo", String(isDemo));
+      sessionStorage.setItem("auditor_is_demo", String(isDemo));
     }
   }, [isDemo]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (auditResult) {
-        localStorage.setItem("auditor_result", JSON.stringify(auditResult));
+        sessionStorage.setItem("auditor_result", JSON.stringify(auditResult));
       } else {
-        localStorage.removeItem("auditor_result");
+        sessionStorage.removeItem("auditor_result");
       }
     }
   }, [auditResult]);
@@ -259,7 +259,7 @@ export function AuditorApp() {
       setSession(session);
       sessionRef.current = session;
       if (session) {
-        if (typeof window !== "undefined" && !localStorage.getItem("auditor_stage")) {
+        if (typeof window !== "undefined" && !sessionStorage.getItem("auditor_stage")) {
           setStage("upload");
         }
       }
@@ -273,10 +273,10 @@ export function AuditorApp() {
         sessionRef.current = null;
         setIsDemo(false);
         if (typeof window !== "undefined") {
-          localStorage.removeItem("auditor_stage");
-          localStorage.removeItem("auditor_tab");
-          localStorage.removeItem("auditor_result");
-          localStorage.removeItem("auditor_is_demo");
+          sessionStorage.removeItem("auditor_stage");
+          sessionStorage.removeItem("auditor_tab");
+          sessionStorage.removeItem("auditor_result");
+          sessionStorage.removeItem("auditor_is_demo");
         }
         setStage("upload");
         setTab("dashboard");
@@ -334,10 +334,10 @@ export function AuditorApp() {
     setStage("upload");
     setTab("dashboard");
     if (typeof window !== "undefined") {
-      localStorage.removeItem("auditor_stage");
-      localStorage.removeItem("auditor_tab");
-      localStorage.removeItem("auditor_result");
-      localStorage.removeItem("auditor_is_demo");
+      sessionStorage.removeItem("auditor_stage");
+      sessionStorage.removeItem("auditor_tab");
+      sessionStorage.removeItem("auditor_result");
+      sessionStorage.removeItem("auditor_is_demo");
     }
   };
 
