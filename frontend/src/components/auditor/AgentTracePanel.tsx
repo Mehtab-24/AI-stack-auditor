@@ -65,7 +65,7 @@ export function AgentTracePanel({
       {compact && (
         <button
           onClick={() => setOpen((o) => !o)}
-          className="mb-3 flex w-full items-center justify-between text-left pl-2 pr-2"
+          className="mb-3 flex w-full items-center justify-between text-left pl-6 pr-2"
         >
           <div>
             <div className="dashboard-box-heading">Agent Trace</div>

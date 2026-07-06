@@ -164,23 +164,23 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
   const normalizeFindingType = (type: string): string | null => {
     if (!type) return null;
     const clean = type.toLowerCase().trim().replace(/[-_]/g, " ");
-    if (clean.includes("duplicate") || clean.includes("overlap") || clean.includes("redundant") || clean.includes("consolidate")) return "Duplicate";
-    if (clean.includes("underused") || clean.includes("underuse") || clean.includes("underutili") || clean.includes("utili") || clean.includes("unused")) return "Underused";
-    if (clean.includes("price") || clean.includes("tier") || clean.includes("cost") || clean.includes("overprice")) return "Overpriced Tier";
-    if (clean.includes("seat") || clean.includes("inactive")) return "Inactive Seats";
-    if (clean.includes("addon") || clean.includes("add on") || clean.includes("hidden")) return "Hidden Add-on";
-    if (clean.includes("renewal") || clean.includes("risk") || clean.includes("expire")) return "Renewal Risk";
+    if (clean.includes("duplicate") || clean.includes("overlap") || clean.includes("redundant") || clean.includes("consolidate")) return "duplicate";
+    if (clean.includes("underused") || clean.includes("underuse") || clean.includes("underutili") || clean.includes("utili") || clean.includes("unused")) return "underused";
+    if (clean.includes("price") || clean.includes("tier") || clean.includes("cost") || clean.includes("overprice")) return "overpriced_tier";
+    if (clean.includes("seat") || clean.includes("inactive")) return "inactive_seats";
+    if (clean.includes("addon") || clean.includes("add on") || clean.includes("hidden")) return "hidden_addon";
+    if (clean.includes("renewal") || clean.includes("risk") || clean.includes("expire")) return "renewal_risk";
     return null;
   };
 
   const normalizeActionType = (action: string): string | null => {
     if (!action) return null;
     const clean = action.toLowerCase().trim().replace(/[-_]/g, " ");
-    if (clean.includes("retain") || clean.includes("keep") || clean.includes("save")) return "Retain";
-    if (clean.includes("downgrade") || clean.includes("lower") || clean.includes("reduce")) return "Downgrade";
-    if (clean.includes("cancel") || clean.includes("remove") || clean.includes("delete")) return "Cancel";
-    if (clean.includes("consolidate") || clean.includes("merge") || clean.includes("combine")) return "Consolidate";
-    if (clean.includes("renewal") || clean.includes("review")) return "Review Renewal";
+    if (clean.includes("retain") || clean.includes("keep") || clean.includes("save")) return "retain";
+    if (clean.includes("downgrade") || clean.includes("lower") || clean.includes("reduce")) return "downgrade";
+    if (clean.includes("cancel") || clean.includes("remove") || clean.includes("delete")) return "cancel";
+    if (clean.includes("consolidate") || clean.includes("merge") || clean.includes("combine")) return "consolidate";
+    if (clean.includes("renewal") || clean.includes("review")) return "review_renewal";
     return null;
   };
 
@@ -324,10 +324,10 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
       if (reportError) throw reportError;
 
       setIsSaved(true);
-      toast.success("Audit report successfully synchronized with Supabase!");
+      toast.success("Audit report saved successfully! You can view it anytime in your Audit History.");
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Failed to persist report.");
+      toast.error("Failed to save report. Please check your network connection and try again.");
     } finally {
       setSaving(false);
     }
