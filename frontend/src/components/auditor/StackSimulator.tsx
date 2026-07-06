@@ -35,19 +35,11 @@ export function StackSimulator({ auditResult }: StackSimulatorProps) {
     setLoading(true);
     setError(null);
 
-    // Map tools to the backend schema format
+    // Map tools to the lightweight SimTool schema the backend expects
     const mappedTools = activeTools.map((t: any) => ({
-      id: t.id,
-      tool_name: t.name || t.tool_name,
-      vendor: t.vendor,
-      category: t.category,
-      monthly_cost: t.monthlyCost || t.monthly_cost || 0,
-      plan_tier: t.plan_tier || "standard",
-      seats_purchased: t.seats || t.seats_purchased || 1,
-      seats_active_estimated: t.activeSeats || t.seats_active_estimated,
-      is_ai_addon: t.is_ai_addon || false,
-      source: t.source || "csv",
-      renewal_date: t.renewal_date,
+      tool_name: t.name || t.tool_name || "Unknown Tool",
+      monthly_cost: t.monthlyCost ?? t.monthly_cost ?? 0,
+      category: t.category ?? "unknown",
     }));
 
     try {

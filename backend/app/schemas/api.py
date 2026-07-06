@@ -27,6 +27,13 @@ class AuditRunRequest(BaseModel):
         default=False,
         description="If true, run the pipeline against the built-in demo dataset.",
     )
+    business_id: str | None = Field(
+        default=None,
+        description=(
+            "UUID of the business row in the database. When provided (and not in demo "
+            "mode), audit results are persisted to Supabase under this business."
+        ),
+    )
 
 
 # ── Responses ────────────────────────────────────────────────────────────────
@@ -45,6 +52,10 @@ class AuditRunResponse(BaseModel):
 
     success: bool = True
     report: AuditReport
+    persisted: bool = Field(
+        default=False,
+        description="True if the report was successfully written to the database.",
+    )
 
 
 class DemoDatasetResponse(BaseModel):

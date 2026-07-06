@@ -14,6 +14,7 @@ export type Confidence = "High" | "Medium" | "Low";
 export type Agent =
   | "Discovery Agent"
   | "Job-Mapping Agent"
+  | "Waste Detection Agent"
   | "Waste & Overlap Agent"
   | "ROI Reasoning Agent"
   | "Alternative Recommendation Agent"

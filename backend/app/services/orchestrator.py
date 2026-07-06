@@ -4,30 +4,28 @@ Executes agents in the defined order, threading each agent's output into the
 next agent's input.  Collects trace steps for the transparency view.
 
 Pipeline:
-    Discovery → Job-Mapping → Waste Detection → Prompt → ROI →
-    AI Router → Recommendation → Action
+    Discovery → Job-Mapping → Waste Detection ─┐
+                                                ├─(concurrent)─▶ Recommendation → Action
+                             ROI Intelligence ──┘
 """
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from app.agents.action_agent import ActionAgent
-from app.agents.ai_router_agent import AIRouterAgent
 from app.agents.discovery_agent import DiscoveryAgent
 from app.agents.job_mapping_agent import JobMappingAgent
-from app.agents.prompt_agent import PromptAgent
 from app.agents.recommendation_agent import RecommendationAgent
 from app.agents.roi_agent import ROIAgent
 from app.agents.waste_detection_agent import WasteDetectionAgent
 from app.core.exceptions import OrchestrationError
 from app.core.logging import get_logger
 from app.schemas.agent_io import (
-    AIRouterInput,
     ActionInput,
     DiscoveryInput,
     JobMappingInput,
-    PromptAnalysisInput,
     RecommendationInput,
     ROIAnalysisInput,
     WasteDetectionInput,
@@ -49,9 +47,7 @@ class AgentOrchestrator:
         self._discovery = DiscoveryAgent()
         self._job_mapping = JobMappingAgent()
         self._waste_detection = WasteDetectionAgent()
-        self._prompt = PromptAgent()
         self._roi = ROIAgent()
-        self._ai_router = AIRouterAgent()
         self._recommendation = RecommendationAgent()
         self._action = ActionAgent()
 
@@ -94,37 +90,21 @@ class AgentOrchestrator:
             )
             trace.append(step)
 
-            # ── Step 3: Waste Detection ──────────────────────────────────
-            waste_result, step = await self._waste_detection.execute(
-                WasteDetectionInput(tools=mapping_result.mapped_tools)
+            # ── Steps 3 & 4: Waste Detection + ROI (concurrent) ──────────
+            # Both independently consume mapped_tools — run in parallel.
+            logger.info("Running Waste Detection and ROI Intelligence concurrently")
+            (waste_result, waste_step), (roi_result, roi_step) = await asyncio.gather(
+                self._waste_detection.execute(
+                    WasteDetectionInput(tools=mapping_result.mapped_tools)
+                ),
+                self._roi.execute(
+                    ROIAnalysisInput(tools=mapping_result.mapped_tools)
+                ),
             )
-            trace.append(step)
+            trace.append(waste_step)
+            trace.append(roi_step)
 
-            # ── Step 4: Prompt Agent ─────────────────────────────────────
-            prompt_result, step = await self._prompt.execute(
-                PromptAnalysisInput(
-                    tools=mapping_result.mapped_tools,
-                    findings=waste_result.findings,
-                )
-            )
-            trace.append(step)
-
-            # ── Step 5: ROI Intelligence ─────────────────────────────────
-            roi_result, step = await self._roi.execute(
-                ROIAnalysisInput(tools=mapping_result.mapped_tools)
-            )
-            trace.append(step)
-
-            # ── Step 6: AI Router ────────────────────────────────────────
-            router_result, step = await self._ai_router.execute(
-                AIRouterInput(
-                    tools=mapping_result.mapped_tools,
-                    roi_scores=roi_result.scores,
-                )
-            )
-            trace.append(step)
-
-            # ── Step 7: Recommendation ───────────────────────────────────
+            # ── Step 5: Recommendation ───────────────────────────────────
             recommendation_result, step = await self._recommendation.execute(
                 RecommendationInput(
                     tools=mapping_result.mapped_tools,
@@ -135,7 +115,7 @@ class AgentOrchestrator:
             )
             trace.append(step)
 
-            # ── Step 8: Action Agent ─────────────────────────────────────
+            # ── Step 6: Action Agent ─────────────────────────────────────
             action_result, step = await self._action.execute(
                 ActionInput(
                     tools=mapping_result.mapped_tools,

@@ -4,9 +4,13 @@ Responsibility:
     Estimate productivity impact and business value for each tool so that
     expensive-but-justified tools aren't flagged as waste.
 
-Current implementation:
-    Deterministic heuristic based on seat utilisation, category importance
-    weighting, and cost-per-active-seat efficiency.
+Implementation:
+    1. Heuristic scoring (utilisation × category weight × cost efficiency)
+       always runs — it's fast, deterministic, and never fails.
+    2. LLM call (Gemini) enriches ``business_value_estimate`` with a
+       natural-language justification grounded in actual tool data.
+       If the LLM is disabled or returns None, the heuristic narrative is
+       used as a fallback — the score itself is never affected.
 """
 
 from __future__ import annotations
@@ -16,6 +20,7 @@ from app.schemas.agent_io import ROIAnalysisInput, ROIAnalysisOutput
 from app.schemas.enums import AgentName, ToolCategory
 from app.schemas.roi import ROIScore
 from app.schemas.tool import MappedTool
+from app.services.llm_client import get_llm_client
 
 # Category importance weights (higher = more critical to business operations)
 _CATEGORY_WEIGHTS: dict[ToolCategory, float] = {
@@ -29,6 +34,10 @@ _CATEGORY_WEIGHTS: dict[ToolCategory, float] = {
     ToolCategory.UNKNOWN: 0.40,
 }
 
+_LLM_SCHEMA_HINT = """{
+  "business_value_estimate": "string — 1 to 2 sentences explaining why this tool's ROI score is justified"
+}"""
+
 
 class ROIAgent(BaseAgent[ROIAnalysisInput, ROIAnalysisOutput]):
     """Scores each tool's business value relative to its cost."""
@@ -38,9 +47,20 @@ class ROIAgent(BaseAgent[ROIAnalysisInput, ROIAnalysisOutput]):
         return AgentName.ROI
 
     async def _run(self, input_data: ROIAnalysisInput) -> ROIAnalysisOutput:
+        llm = get_llm_client()
         scores: list[ROIScore] = []
+
         for tool in input_data.tools:
-            scores.append(self._score_tool(tool))
+            score = self._score_tool(tool)
+
+            # Enrich narrative with LLM if available
+            if llm.is_enabled:
+                llm_narrative = await self._generate_llm_narrative(llm, tool, score)
+                if llm_narrative:
+                    score.business_value_estimate = llm_narrative
+
+            scores.append(score)
+
         return ROIAnalysisOutput(scores=scores)
 
     def _summarise(self, result: ROIAnalysisOutput) -> str:
@@ -53,7 +73,7 @@ class ROIAgent(BaseAgent[ROIAnalysisInput, ROIAnalysisOutput]):
             f"{len(high_roi)} high-ROI, {len(low_roi)} low-ROI"
         )
 
-    # ── Scoring logic ────────────────────────────────────────────────────────
+    # ── Heuristic scoring ────────────────────────────────────────────────────
 
     def _score_tool(self, tool: MappedTool) -> ROIScore:
         utilisation = self._utilisation(tool)
@@ -73,8 +93,8 @@ class ROIAgent(BaseAgent[ROIAnalysisInput, ROIAnalysisOutput]):
         # Confidence is higher when we have seat data
         confidence = 0.85 if tool.seats_active_estimated is not None else 0.50
 
-        # Business value narrative
-        value_estimate = self._value_narrative(tool, roi, productivity)
+        # Heuristic fallback narrative (replaced by LLM if available)
+        value_estimate = self._heuristic_narrative(tool, roi)
 
         return ROIScore(
             tool_id=tool.id,
@@ -85,8 +105,43 @@ class ROIAgent(BaseAgent[ROIAnalysisInput, ROIAnalysisOutput]):
             confidence_score=confidence,
         )
 
-    def _value_narrative(self, tool: MappedTool, roi: float, productivity: float) -> str:
-        """Generate a human-readable business-value explanation."""
+    # ── LLM narrative generation ─────────────────────────────────────────────
+
+    async def _generate_llm_narrative(
+        self, llm: object, tool: MappedTool, score: ROIScore
+    ) -> str | None:
+        """Ask Gemini to write a business-value justification for this tool's score."""
+        from app.services.llm_client import GeminiClient
+        assert isinstance(llm, GeminiClient)
+
+        util = self._utilisation(tool)
+        prompt = (
+            f"You are writing a concise business-value assessment for an AI tool subscription.\n\n"
+            f"Tool: {tool.tool_name} (vendor: {tool.vendor})\n"
+            f"Business category: {tool.category.value}\n"
+            f"Monthly cost: ${tool.monthly_cost}\n"
+            f"Seats purchased: {tool.seats_purchased}\n"
+            f"Seats actively used: {tool.seats_active_estimated or 'Unknown'}\n"
+            f"Seat utilisation: {util:.0%}\n"
+            f"ROI score: {score.roi_score}/10\n"
+            f"Productivity score: {score.productivity_score}/10\n\n"
+            f"Write 1–2 sentences explaining WHY this ROI score is justified "
+            f"for this specific tool. Be specific — mention actual numbers. "
+            f"If ROI is high, explain what justifies the cost. "
+            f"If ROI is low, explain what's driving the low score."
+        )
+
+        result = await llm.generate_json(prompt, schema_hint=_LLM_SCHEMA_HINT)
+        if result is None:
+            return None
+
+        narrative = str(result.get("business_value_estimate", "")).strip()
+        return narrative if narrative else None
+
+    # ── Heuristic helpers ────────────────────────────────────────────────────
+
+    def _heuristic_narrative(self, tool: MappedTool, roi: float) -> str:
+        """Fallback business-value explanation used when LLM is unavailable."""
         util = self._utilisation(tool)
 
         if roi >= 7.0:

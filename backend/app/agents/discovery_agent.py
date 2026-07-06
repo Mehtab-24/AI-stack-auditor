@@ -60,10 +60,17 @@ class DiscoveryAgent(BaseAgent[DiscoveryInput, DiscoveryOutput]):
     def _row_to_tool(self, row: dict[str, Any]) -> DiscoveredTool | None:
         """Convert a single CSV row dict into a DiscoveredTool, or None."""
         tool_name = str(row.get("tool_name", "")).strip()
-        vendor = str(row.get("vendor", "")).strip()
-
-        if not tool_name or not vendor:
+        if not tool_name:
             return None
+
+        vendor = str(row.get("vendor", "")).strip()
+        if not vendor:
+            # Try to infer vendor from tool name using the knowledge base
+            known = lookup_tool(tool_name)
+            if known:
+                vendor = known.tool_name.split()[0]
+            else:
+                vendor = tool_name.split()[0] if tool_name.split() else "Unknown"
 
         try:
             monthly_cost = float(row.get("monthly_cost", 0))

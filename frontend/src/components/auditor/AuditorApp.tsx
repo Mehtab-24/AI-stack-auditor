@@ -9,9 +9,124 @@ import { FindingsView } from "./FindingsView";
 import { RecommendationsView } from "./RecommendationsView";
 import { MyReportsPage } from "./MyReportsPage";
 import { StackSimulator } from "./StackSimulator";
-import { Sun, Moon, LogOut, User, Sparkles, Database } from "lucide-react";
+import { Sun, Moon, LogOut, Sparkles, Database } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
+
+// ---------------------------------------------------------------------------
+// Transform the backend's snake_case API response to the camelCase shape that
+// all dashboard / findings / recommendations components expect.
+// MyReportsPage does the same mapping when loading from Supabase — keep in sync.
+// ---------------------------------------------------------------------------
+function confidenceLabel(score: number): string {
+  if (score >= 0.75) return "High";
+  if (score >= 0.45) return "Medium";
+  return "Low";
+}
+
+function transformAuditResponse(apiData: any): any {
+  const report = apiData?.report ?? apiData;
+
+  const tools = (report.tools ?? []).map((t: any) => ({
+    id: t.id,
+    name: t.tool_name,
+    tool_name: t.tool_name,
+    vendor: t.vendor,
+    category: t.category,
+    monthlyCost: t.monthly_cost ?? 0,
+    monthly_cost: t.monthly_cost ?? 0,
+    seats: t.seats_purchased ?? 1,
+    seats_purchased: t.seats_purchased ?? 1,
+    activeSeats: t.seats_active_estimated ?? t.seats_purchased ?? 1,
+    seats_active_estimated: t.seats_active_estimated,
+    flagged: false, // derived below
+    plan_tier: t.plan_tier,
+    is_ai_addon: t.is_ai_addon,
+    source: t.source,
+    renewal_date: t.renewal_date,
+  }));
+
+  const findings = (report.findings ?? []).map((f: any) => ({
+    id: f.id,
+    toolId: f.tool_id,
+    tool_id: f.tool_id,
+    type: f.finding_type
+      ? f.finding_type.charAt(0).toUpperCase() + f.finding_type.slice(1).replace(/_/g, " ")
+      : "Unknown",
+    finding_type: f.finding_type,
+    confidence: confidenceLabel(f.confidence_score ?? 0),
+    confidence_score: f.confidence_score,
+    agent: f.generated_by_agent,
+    generated_by_agent: f.generated_by_agent,
+    reasoning: f.description,
+    description: f.description,
+    suggestedAlternative: f.suggested_alternative ?? "",
+    suggested_alternative: f.suggested_alternative,
+    monthlySavings: f.estimated_monthly_savings ?? 0,
+    estimated_monthly_savings: f.estimated_monthly_savings ?? 0,
+  }));
+
+  // Mark tools that appear in findings as flagged
+  const flaggedIds = new Set(findings.map((f: any) => f.toolId).filter(Boolean));
+  for (const t of tools) {
+    if (flaggedIds.has(t.id)) t.flagged = true;
+  }
+
+  const recommendations = (report.recommendations ?? []).map((r: any) => ({
+    id: r.id,
+    findingId: r.finding_id,
+    finding_id: r.finding_id,
+    toolName: r.tool_name ?? "",
+    tool_name: r.tool_name,
+    action: r.action_type
+      ? r.action_type.charAt(0).toUpperCase() + r.action_type.slice(1)
+      : "Review",
+    action_type: r.action_type,
+    rationale: r.suggested_alternative ?? r.rationale ?? "",
+    suggested_alternative: r.suggested_alternative,
+    monthlySavings: r.estimated_monthly_savings ?? 0,
+    estimated_monthly_savings: r.estimated_monthly_savings ?? 0,
+    annualSavings: r.estimated_annual_savings ?? 0,
+    estimated_annual_savings: r.estimated_annual_savings ?? 0,
+    status: r.status,
+  }));
+
+  // Map agent_trace to the shape AgentTracePanel expects: {agent, running, result}
+  const agentTraceSteps = (report.agent_trace ?? []).map((step: any) => ({
+    agent: step.agent,
+    label: step.agent,
+    running: `${step.agent} running...`,
+    result: step.summary || `${step.agent} completed`,
+    duration_ms: step.duration_ms,
+    status: step.status,
+  }));
+
+  return {
+    // top-level flat shape (what components read directly from auditResult)
+    tools,
+    findings,
+    recommendations,
+    roi_scores: report.roi_scores ?? [],
+    agentTraceSteps,
+    // report sub-object for summary stats
+    report: {
+      id: report.id,
+      generated_at: report.generated_at,
+      totalMonthlySavings: report.total_monthly_savings ?? 0,
+      totalAnnualSavings: report.total_annual_savings ?? 0,
+      totalToolsDiscovered: report.tools_discovered ?? tools.length,
+      totalToolsFlagged: report.tools_flagged ?? findings.length,
+      total_monthly_savings: report.total_monthly_savings ?? 0,
+      total_annual_savings: report.total_annual_savings ?? 0,
+    },
+    // convenience top-level aliases some components use
+    totalMonthlySavings: report.total_monthly_savings ?? 0,
+    totalAnnualSavings: report.total_annual_savings ?? 0,
+    toolsDiscovered: report.tools_discovered ?? tools.length,
+    toolsFlagged: report.tools_flagged ?? findings.length,
+    persisted: apiData?.persisted ?? false,
+  };
+}
 
 type Stage = "reports" | "upload" | "trace" | "app";
 type Tab = "dashboard" | "findings" | "recommendations" | "simulator";
@@ -235,7 +350,7 @@ export function AuditorApp() {
     try {
       const formData = new FormData();
       formData.append("use_demo", useDemo ? "true" : "false");
-      formData.append("business_name", session ? session.user.email.split("@")[0] : "My Startup");
+      formData.append("business_name", session ? (session.user.email ?? "user").split("@")[0] : "My Startup");
 
       if (session) {
         const { data: business } = await supabase
@@ -262,10 +377,16 @@ export function AuditorApp() {
         throw new Error(`API error: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const raw = await response.json();
+      // Transform snake_case backend response → camelCase shape components expect
+      const data = transformAuditResponse(raw);
       setAuditResult(data);
+      if (data.persisted) {
+        toast.success("Audit report saved to your account");
+      }
     } catch (error) {
       console.warn("FastAPI audit execution failed, resolving on local mock fallback data:", error);
+      toast.error("Audit failed — showing demo data");
       // Fallback resolves to mockData if auditResult is null
     } finally {
       setLoadingAudit(false);

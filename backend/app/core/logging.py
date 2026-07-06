@@ -14,7 +14,7 @@ from typing import Final
 from app.config.settings import settings
 
 _LOG_FORMAT_DEV: Final[str] = (
-    "%(asctime)s │ %(levelname)-8s │ %(name)-30s │ %(message)s"
+    "%(asctime)s | %(levelname)-8s | %(name)-30s | %(message)s"
 )
 _LOG_FORMAT_PROD: Final[str] = (
     '{"ts":"%(asctime)s","level":"%(levelname)s",'

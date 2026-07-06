@@ -1,11 +1,11 @@
 """Stack Simulator service — independent "what-if" analysis.
 
 Runs independently of the main audit pipeline.  Takes a current tool inventory
-and a user-described hypothetical change, then estimates cost/impact without
-writing to findings or recommendations.
+(as lightweight SimTool objects) and a user-described hypothetical change,
+then estimates cost/impact without writing to findings or recommendations.
 
-Current implementation:
-    Deterministic keyword-based heuristic.
+SimTool is intentionally lightweight — only tool_name, monthly_cost, and
+an optional category string are required.
 """
 
 from __future__ import annotations
@@ -13,8 +13,7 @@ from __future__ import annotations
 import re
 
 from app.core.logging import get_logger
-from app.schemas.simulation import SimulationRequest, SimulationResult
-from app.schemas.tool import MappedTool
+from app.schemas.simulation import SimTool, SimulationRequest, SimulationResult
 
 logger = get_logger("services.stack_simulator")
 
@@ -28,8 +27,9 @@ class StackSimulatorService:
         Parameters
         ----------
         request:
-            The simulation request containing the current tool list and the
-            natural-language hypothetical to evaluate.
+            The simulation request containing the current tool list (as
+            lightweight ``SimTool`` objects) and the natural-language hypothetical
+            to evaluate.
 
         Returns
         -------
@@ -67,10 +67,9 @@ class StackSimulatorService:
     # ── Handlers ─────────────────────────────────────────────────────────────
 
     def _handle_replace(
-        self, tools: list[MappedTool], hypothetical: str, original_cost: float
+        self, tools: list[SimTool], hypothetical: str, original_cost: float
     ) -> SimulationResult:
         """Estimate impact of replacing one tool with another."""
-        # Try to extract "replace X with Y"
         match = re.search(r"(?:replace|swap|switch)\s+(.+?)\s+(?:with|for|to)\s+(.+)", hypothetical)
         if not match:
             return self._handle_generic(tools, hypothetical, original_cost)
@@ -78,7 +77,6 @@ class StackSimulatorService:
         old_name = match.group(1).strip()
         new_name = match.group(2).strip()
 
-        # Find the tool being replaced
         replaced = self._find_tool(tools, old_name)
         if replaced is None:
             return SimulationResult(
@@ -91,7 +89,7 @@ class StackSimulatorService:
                 recommendation=f"Could not find '{old_name}' in the current tool inventory.",
             )
 
-        # Estimate new cost (assume replacement is ~70% of original cost as a heuristic)
+        # Estimate new cost (replacement is ~70% of original cost as heuristic)
         estimated_new_cost = replaced.monthly_cost * 0.7
         predicted = original_cost - replaced.monthly_cost + estimated_new_cost
         delta = original_cost - predicted
@@ -114,10 +112,9 @@ class StackSimulatorService:
         )
 
     def _handle_reduce(
-        self, tools: list[MappedTool], hypothetical: str, original_cost: float
+        self, tools: list[SimTool], hypothetical: str, original_cost: float
     ) -> SimulationResult:
         """Estimate impact of a percentage spend reduction."""
-        # Try to extract a percentage
         match = re.search(r"(\d+)\s*%", hypothetical)
         pct = int(match.group(1)) / 100 if match else 0.20
 
@@ -142,10 +139,9 @@ class StackSimulatorService:
         )
 
     def _handle_remove(
-        self, tools: list[MappedTool], hypothetical: str, original_cost: float
+        self, tools: list[SimTool], hypothetical: str, original_cost: float
     ) -> SimulationResult:
         """Estimate impact of removing a specific tool."""
-        # Try to extract tool name after the action verb
         match = re.search(r"(?:remove|cancel|drop|eliminate)\s+(.+)", hypothetical)
         tool_name = match.group(1).strip() if match else hypothetical
 
@@ -162,6 +158,7 @@ class StackSimulatorService:
             )
 
         predicted = original_cost - removed.monthly_cost
+        category = removed.category or "unknown"
         return SimulationResult(
             original_monthly_cost=original_cost,
             predicted_monthly_cost=round(predicted, 2),
@@ -169,19 +166,17 @@ class StackSimulatorService:
             savings_delta=round(removed.monthly_cost, 2),
             productivity_impact=(
                 f"Removing {removed.tool_name} saves ${removed.monthly_cost:,.0f}/mo. "
-                f"This affects {removed.seats_active_estimated or removed.seats_purchased} "
-                f"active user(s) in {removed.category.value}."
+                f"Ensure {category} workflows are covered by remaining tools."
             ),
             risk_score=5.0,
             recommendation=(
-                f"Ensure {removed.category.value} workflows are covered by remaining tools "
-                f"before cancelling {removed.tool_name}."
+                f"Verify {category} coverage before cancelling {removed.tool_name}."
             ),
         )
 
     @staticmethod
     def _handle_generic(
-        tools: list[MappedTool], hypothetical: str, original_cost: float
+        tools: list[SimTool], hypothetical: str, original_cost: float
     ) -> SimulationResult:
         """Fallback for unrecognised scenarios."""
         return SimulationResult(
@@ -198,7 +193,7 @@ class StackSimulatorService:
         )
 
     @staticmethod
-    def _find_tool(tools: list[MappedTool], name: str) -> MappedTool | None:
+    def _find_tool(tools: list[SimTool], name: str) -> SimTool | None:
         """Case-insensitive tool lookup by name substring."""
         normalised = name.lower()
         for t in tools:

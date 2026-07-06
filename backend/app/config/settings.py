@@ -23,11 +23,18 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
 
-    # CORS
+    # CORS — list of allowed frontend origins
     cors_origins: list[str] = [
         "http://localhost:5173",
         "http://localhost:3000",
     ]
+
+    # Supabase — server-side only, never exposed to responses
+    supabase_url: str = ""
+    supabase_service_role_key: str = ""
+
+    # LLM — Gemini API key
+    gemini_api_key: str = ""
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

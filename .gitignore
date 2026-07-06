@@ -42,3 +42,11 @@ __pycache__/
 # Environment files
 .env
 .env.*
+
+# Internal Hackathon Spec/Design Docs (keep locally, ignore in git)
+PRD.md
+TRD.md
+BUILD_PLAN.md
+AGENTS.md
+*.sql
+*.log

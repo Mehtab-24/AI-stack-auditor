@@ -26,11 +26,15 @@ export function SavingsDashboard({ auditResult }: SavingsDashboardProps) {
   const [saving, setSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [session, setSession] = useState<any>(null);
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
+    if (typeof window !== "undefined") {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    }
   }, []);
 
   // Dynamically resolve data from backend API or fallback to mockData

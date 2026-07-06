@@ -5,8 +5,13 @@ Responsibility:
     low seat utilisation, overpriced tiers, inactive seats, hidden add-ons
     that are underused, and upcoming renewals on low-usage tools.
 
-Current implementation:
-    Rule-based — deterministic thresholds for each finding type.
+Implementation:
+    - Rules 1–2, 4–6 are deterministic (fast, no API calls).
+    - Rule 3 (overpriced_tier) uses a heuristic pre-filter then an LLM call,
+      since "is this tier justified" is explicitly a judgment call per
+      BUILD_PLAN §4 — usage patterns vary too much for a single threshold.
+    - If the LLM is disabled, overpriced_tier detection is skipped for that
+      tool rather than generating a false positive.
 """
 
 from __future__ import annotations
@@ -19,11 +24,22 @@ from app.schemas.agent_io import WasteDetectionInput, WasteDetectionOutput
 from app.schemas.enums import AgentName, FindingType
 from app.schemas.finding import Finding
 from app.schemas.tool import MappedTool
+from app.services.llm_client import get_llm_client
+from app.utils.knowledge_base import lookup_tool
 
 # Thresholds
-_SEAT_UTILISATION_THRESHOLD = 0.50  # Flag if < 50% seats are active
-_INACTIVE_SEAT_THRESHOLD = 0.25    # Flag as inactive seats if < 25% utilisation
-_RENEWAL_WINDOW_DAYS = 30          # Flag renewals within this window
+_SEAT_UTILISATION_THRESHOLD = 0.50   # Flag if < 50% seats are active
+_INACTIVE_SEAT_THRESHOLD = 0.25     # Flag as inactive seats if < 25% utilisation
+_RENEWAL_WINDOW_DAYS = 30            # Flag renewals within this window
+
+# Tiers considered "premium" — these go through overpriced_tier analysis
+_PREMIUM_TIERS: set[str] = {"enterprise", "premium", "pro", "business", "team"}
+
+_LLM_SCHEMA_HINT = """{
+  "is_overpriced": "boolean — true if this plan tier is unjustified given actual usage",
+  "reason": "string — 1-2 sentence explanation referencing actual seat usage and market pricing",
+  "confidence": "number between 0.0 and 1.0"
+}"""
 
 
 class WasteDetectionAgent(BaseAgent[WasteDetectionInput, WasteDetectionOutput]):
@@ -41,17 +57,19 @@ class WasteDetectionAgent(BaseAgent[WasteDetectionInput, WasteDetectionOutput]):
         findings.extend(self._detect_inactive_seats(input_data.tools))
         findings.extend(self._detect_hidden_addon_waste(input_data.tools))
         findings.extend(self._detect_renewal_risks(input_data.tools))
+        # LLM-backed overpriced-tier detection runs last (may make API calls)
+        findings.extend(await self._detect_overpriced_tier(input_data.tools))
 
         return WasteDetectionOutput(findings=findings)
 
     def _summarise(self, result: WasteDetectionOutput) -> str:
-        by_type = defaultdict(int)
+        by_type: dict[str, int] = defaultdict(int)
         for f in result.findings:
             by_type[f.finding_type.value] += 1
         parts = [f"{count} {ftype}" for ftype, count in sorted(by_type.items())]
         return f"Flagged {len(result.findings)} issues: {', '.join(parts)}" if parts else "No waste detected."
 
-    # ── Detection rules ──────────────────────────────────────────────────────
+    # ── Rule-based detection ─────────────────────────────────────────────────
 
     def _detect_duplicates(self, tools: list[MappedTool]) -> list[Finding]:
         """Flag same-category tools as potential duplicates."""
@@ -64,7 +82,7 @@ class WasteDetectionAgent(BaseAgent[WasteDetectionInput, WasteDetectionOutput]):
         for category, group in by_category.items():
             if len(group) < 2:
                 continue
-            # Sort by active-seat utilisation descending
+            # Sort by active-seat utilisation descending — highest utilisation = primary
             ranked = sorted(group, key=lambda t: self._utilisation(t), reverse=True)
             primary = ranked[0]
             for duplicate in ranked[1:]:
@@ -180,6 +198,98 @@ class WasteDetectionAgent(BaseAgent[WasteDetectionInput, WasteDetectionOutput]):
                     )
                 )
         return findings
+
+    # ── LLM-backed overpriced-tier detection ─────────────────────────────────
+
+    async def _detect_overpriced_tier(self, tools: list[MappedTool]) -> list[Finding]:
+        """Flag tools on premium/enterprise tiers that don't justify the cost.
+
+        Pre-filter: only tools whose plan_tier is a known premium tier AND whose
+        seat utilisation is below 60% are sent to the LLM for judgment.
+        This keeps LLM call volume low while targeting the right candidates.
+        """
+        llm = get_llm_client()
+        findings: list[Finding] = []
+
+        for tool in tools:
+            # Pre-filter 1: must be a premium-tier plan
+            if tool.plan_tier.lower() not in _PREMIUM_TIERS:
+                continue
+
+            # Pre-filter 2: must have mediocre or poor utilisation
+            util = self._utilisation(tool)
+            if util >= 0.60:
+                continue  # Well-utilised premium tiers are not candidates
+
+            # Pre-filter 3: cost must be above a minimal threshold
+            if tool.monthly_cost < 50:
+                continue  # Very cheap tools aren't worth flagging as "overpriced tier"
+
+            if not llm.is_enabled:
+                # Without LLM we can't make a judgment call — skip rather than false-positive
+                continue
+
+            finding = await self._llm_judge_overpriced(llm, tool, util)
+            if finding:
+                findings.append(finding)
+
+        return findings
+
+    async def _llm_judge_overpriced(
+        self, llm: object, tool: MappedTool, utilisation: float
+    ) -> Finding | None:
+        """Call LLM to judge whether a specific tool's tier is unjustified."""
+        from app.services.llm_client import GeminiClient
+        assert isinstance(llm, GeminiClient)
+
+        # Retrieve KB pricing reference if available
+        kb_entry = lookup_tool(tool.tool_name)
+        price_context = (
+            f"Typical market price range for this tool: {kb_entry.typical_price_range}"
+            if kb_entry else "No market pricing data available."
+        )
+
+        prompt = (
+            f"You are evaluating whether an AI tool subscription is on an unjustifiably expensive tier.\n\n"
+            f"Tool: {tool.tool_name}\n"
+            f"Vendor: {tool.vendor}\n"
+            f"Plan tier: {tool.plan_tier}\n"
+            f"Monthly cost: ${tool.monthly_cost}\n"
+            f"Seats purchased: {tool.seats_purchased}\n"
+            f"Seats actively used: {tool.seats_active_estimated or 'Unknown'}\n"
+            f"Seat utilisation: {utilisation:.0%}\n"
+            f"Business category: {tool.category.value}\n"
+            f"{price_context}\n\n"
+            f"Is this subscription on an overpriced tier given the actual usage?\n"
+            f"Consider: seat utilisation, cost vs. market pricing, and whether a cheaper tier would suffice."
+        )
+
+        result = await llm.generate_json(prompt, schema_hint=_LLM_SCHEMA_HINT)
+        if result is None:
+            return None
+
+        is_overpriced = bool(result.get("is_overpriced", False))
+        if not is_overpriced:
+            return None
+
+        reason = str(result.get("reason", "")).strip()
+        confidence = float(result.get("confidence", 0.70))
+        confidence = max(0.0, min(1.0, confidence))
+
+        if not reason:
+            reason = (
+                f"{tool.tool_name} is on the {tool.plan_tier} tier at ${tool.monthly_cost}/mo "
+                f"with only {utilisation:.0%} seat utilisation — a lower tier may suffice."
+            )
+
+        return Finding(
+            tool_id=tool.id,
+            tool_name=tool.tool_name,
+            finding_type=FindingType.OVERPRICED_TIER,
+            description=reason,
+            confidence_score=confidence,
+            generated_by_agent=AgentName.WASTE_DETECTION,
+        )
 
     # ── Utility ──────────────────────────────────────────────────────────────
 
