@@ -23,6 +23,30 @@ _LOG_FORMAT_PROD: Final[str] = (
 
 _configured: bool = False
 
+_NOISY_PREFIXES: Final[tuple[str, ...]] = (
+    "uvicorn",
+    "httpcore",
+    "hpack",
+    "pdfminer",
+    "grpc",
+    "urllib3",
+    "supabase",
+    "postgrest",
+    "realtime",
+)
+
+
+def _silence_noisy_loggers() -> None:
+    """Scan active loggers and set level to WARNING for noisy dependencies."""
+    # Silence primary loggers
+    for prefix in _NOISY_PREFIXES:
+        logging.getLogger(prefix).setLevel(logging.WARNING)
+
+    # Silence child loggers
+    for name in list(logging.Logger.manager.loggerDict.keys()):
+        if any(name == prefix or name.startswith(prefix + ".") for prefix in _NOISY_PREFIXES):
+            logging.getLogger(name).setLevel(logging.WARNING)
+
 
 def _configure_root_logger() -> None:
     """One-time setup of the root logger."""
@@ -40,9 +64,8 @@ def _configure_root_logger() -> None:
     root.setLevel(level)
     root.addHandler(handler)
 
-    # Quieten noisy third-party loggers
-    logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
-    logging.getLogger("httpcore").setLevel(logging.WARNING)
+    # Run initial silence pass
+    _silence_noisy_loggers()
 
     _configured = True
 
@@ -50,4 +73,6 @@ def _configure_root_logger() -> None:
 def get_logger(name: str) -> logging.Logger:
     """Return a named logger, ensuring the root logger is configured."""
     _configure_root_logger()
+    # Run dynamic silence pass to catch loggers imported after boot
+    _silence_noisy_loggers()
     return logging.getLogger(name)

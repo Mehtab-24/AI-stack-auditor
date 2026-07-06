@@ -101,6 +101,8 @@ def parse_pdf(content: bytes) -> list[dict]:
     """
     try:
         import pdfplumber  # type: ignore[import]
+        from app.core.logging import _silence_noisy_loggers
+        _silence_noisy_loggers()
     except ImportError as exc:
         raise CSVParsingError(
             message="PDF parsing requires pdfplumber. Install it with: pip install pdfplumber",
