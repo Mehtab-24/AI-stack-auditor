@@ -11,7 +11,12 @@ if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KE
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    storage: typeof window !== "undefined" ? window.sessionStorage : undefined,
+  },
+});
 
 // Sign up helper
 export async function signUp(email: string, password: string) {
