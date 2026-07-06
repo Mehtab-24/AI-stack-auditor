@@ -25,6 +25,7 @@ _AI_KEYWORDS: set[str] = {
     "ai", "ml", "gpt", "copilot", "assistant", "intelligence",
     "autopilot", "bot", "neural", "llm", "genai", "generative",
     "magic", "genius", "smart", "auto-complete", "autocomplete",
+    "pilot",
 }
 
 _ADDON_KEYWORDS: set[str] = {"add-on", "addon", "plugin", "extension", "boost", "premium ai"}

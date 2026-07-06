@@ -108,13 +108,22 @@ def lookup_tool(name: str) -> KnowledgeBaseEntry | None:
 
     Returns the best match or ``None``.
     """
-    normalised = name.strip().lower()
+    def clean(s: str) -> str:
+        return s.strip().lower().replace(".ai", "")
+
+    normalised = clean(name)
+    if not normalised:
+        return None
+
+    # Exact normalized match
     for entry in get_knowledge_base():
-        if entry.tool_name.lower() == normalised:
+        if clean(entry.tool_name) == normalised:
             return entry
-    # Substring fallback
+
+    # Substring match
     for entry in get_knowledge_base():
-        if normalised in entry.tool_name.lower() or entry.tool_name.lower() in normalised:
+        entry_clean = clean(entry.tool_name)
+        if entry_clean in normalised or normalised in entry_clean:
             return entry
     return None
 
