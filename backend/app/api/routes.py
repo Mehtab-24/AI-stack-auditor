@@ -160,13 +160,30 @@ async def _resolve_input_form(
         filename = (file.filename or "").lower()
         content_type = (file.content_type or "").lower()
         is_pdf = "pdf" in content_type or filename.endswith(".pdf")
+        is_txt = "text" in content_type or filename.endswith(".txt") or filename.endswith(".log")
 
         if is_pdf:
             logger.info("Parsing uploaded PDF invoice: %s", file.filename)
             return parse_pdf(content)
+        elif is_txt:
+            logger.info("Parsing uploaded unstructured text file: %s", file.filename)
+            try:
+                text_content = content.decode("utf-8")
+            except UnicodeDecodeError as exc:
+                raise CSVParsingError(message="Text file is not valid UTF-8.") from exc
+            from app.utils.text_parser import parse_unstructured_text
+            return await parse_unstructured_text(text_content)
         else:
             logger.info("Parsing uploaded CSV: %s", file.filename)
-            return parse_csv(content)
+            try:
+                return parse_csv(content)
+            except CSVParsingError as csv_err:
+                try:
+                    text_content = content.decode("utf-8")
+                    from app.utils.text_parser import parse_unstructured_text
+                    return await parse_unstructured_text(text_content)
+                except Exception:
+                    raise csv_err
 
     # 3. Raw CSV string
     if csv_content.strip():

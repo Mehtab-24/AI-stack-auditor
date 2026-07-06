@@ -72,6 +72,8 @@ _COLUMN_ALIASES: dict[str, str] = {
     "users": "seats_purchased",
     "num users": "seats_purchased",
     "quantity": "seats_purchased",
+    "qty": "seats_purchased",
+    "qnty": "seats_purchased",
 }
 
 # Regex patterns for money values in text — matches $X, $X.XX, $X,XXX

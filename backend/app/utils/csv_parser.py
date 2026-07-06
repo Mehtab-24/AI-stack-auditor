@@ -16,16 +16,43 @@ from app.core.logging import get_logger
 
 logger = get_logger("utils.csv_parser")
 
-REQUIRED_COLUMNS: set[str] = {"tool_name", "vendor", "monthly_cost"}
+REQUIRED_COLUMNS: set[str] = {"tool_name", "monthly_cost"}
 
-OPTIONAL_COLUMNS: set[str] = {
-    "plan_tier",
-    "seats_purchased",
-    "seats_active_estimated",
-    "is_ai_addon",
-    "renewal_date",
-    "notes",
-    "category",
+_HEADER_MAP: dict[str, str] = {
+    # tool_name
+    "tool": "tool_name",
+    "name": "tool_name",
+    "tool_name": "tool_name",
+    "tool name": "tool_name",
+    # vendor
+    "vendor": "vendor",
+    "vendor name": "vendor",
+    "vendor_name": "vendor",
+    # monthly_cost
+    "cost": "monthly_cost",
+    "monthly cost": "monthly_cost",
+    "monthly_cost": "monthly_cost",
+    "amount": "monthly_cost",
+    # plan_tier
+    "plan": "plan_tier",
+    "plan_tier": "plan_tier",
+    "tier": "plan_tier",
+    # seats_purchased
+    "seats": "seats_purchased",
+    "seats_purchased": "seats_purchased",
+    "qty": "seats_purchased",
+    "quantity": "seats_purchased",
+    # seats_active_estimated
+    "active": "seats_active_estimated",
+    "seats_active_estimated": "seats_active_estimated",
+    "active_seats": "seats_active_estimated",
+    # is_ai_addon
+    "is_ai_addon": "is_ai_addon",
+    "addon": "is_ai_addon",
+    "ai_addon": "is_ai_addon",
+    # renewal_date
+    "renewal": "renewal_date",
+    "renewal_date": "renewal_date",
 }
 
 
@@ -58,7 +85,9 @@ def parse_csv(content: str | bytes) -> list[dict[str, Any]]:
             ) from exc
 
     try:
-        df = pd.read_csv(StringIO(content))
+        # Detect delimiter if it's tab-separated
+        sep = "\t" if "\t" in content and "," not in content else ","
+        df = pd.read_csv(StringIO(content), sep=sep)
     except pd.errors.ParserError as exc:
         raise CSVParsingError(
             message="Failed to parse CSV structure.",
@@ -68,8 +97,10 @@ def parse_csv(content: str | bytes) -> list[dict[str, Any]]:
     if df.empty:
         raise CSVParsingError(message="CSV file is empty — no data rows found.")
 
-    # Normalise column names: strip whitespace, lowercase, spaces → underscores
-    df.columns = [col.strip().lower().replace(" ", "_") for col in df.columns]
+    # Normalise column names: strip, lowercase, map using header map
+    raw_cols = [col.strip().lower() for col in df.columns]
+    mapped_cols = [_HEADER_MAP.get(c, c).replace(" ", "_") for c in raw_cols]
+    df.columns = mapped_cols
 
     # Validate required columns
     present = set(df.columns)
