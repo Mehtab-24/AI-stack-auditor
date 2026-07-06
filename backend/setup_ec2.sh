@@ -13,24 +13,34 @@ GEMINI_KEY=$1
 SUPABASE_URL=$2
 SUPABASE_KEY=$3
 
-echo "=== 1. Updating System Packages ==="
-sudo apt-get update -y
-sudo apt-get install -y python3-pip python3-venv python3-dev git nginx curl
+echo "=== 1. Creating 2GB Swap File (Prevents Out of Memory compiler crashes) ==="
+if [ ! -f "/swapfile" ]; then
+    sudo fallocate -l 2G /swapfile
+    sudo chmod 600 /swapfile
+    sudo mkswap /swapfile
+    sudo swapon /swapfile
+    echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+fi
 
-echo "=== 2. Cloning Repository ==="
+echo "=== 2. Updating System Packages ==="
+sudo apt-get update -y
+sudo apt-get install -y python3-pip python3-venv python3-dev git nginx curl python3-pandas python3-numpy
+
+echo "=== 3. Cloning Repository ==="
 cd /home/ubuntu
 if [ ! -d "AI-stack-auditor" ]; then
     git clone https://github.com/Mehtab-24/AI-stack-auditor.git
 fi
 cd AI-stack-auditor/backend
 
-echo "=== 3. Creating Virtual Environment ==="
-python3 -m venv .venv
+echo "=== 4. Creating Virtual Environment ==="
+# Use system-site-packages so Nginx, Pandas, and NumPy are inherited from apt-get
+python3 -m venv --system-site-packages .venv
 source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 
-echo "=== 4. Setting Environment Variables ==="
+echo "=== 5. Setting Environment Variables ==="
 cat <<EOT > .env
 PORT=8000
 HOST=0.0.0.0
@@ -41,7 +51,7 @@ APP_ENV=production
 DEBUG=false
 EOT
 
-echo "=== 5. Setting up background systemd Service ==="
+echo "=== 6. Setting up background systemd Service ==="
 sudo cat <<EOT > /etc/systemd/system/fastapi.service
 [Unit]
 Description=FastAPI AI Stack Auditor Backend
@@ -58,7 +68,7 @@ Environment=PATH=/home/ubuntu/AI-stack-auditor/backend/.venv/bin:/usr/bin:/bin
 WantedBy=multi-user.target
 EOT
 
-echo "=== 6. Starting Service ==="
+echo "=== 7. Starting Service ==="
 sudo systemctl daemon-reload
 sudo systemctl enable fastapi
 sudo systemctl restart fastapi
