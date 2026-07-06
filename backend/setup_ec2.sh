@@ -30,6 +30,11 @@ echo "=== 3. Cloning Repository ==="
 cd /home/ubuntu
 if [ ! -d "AI-stack-auditor" ]; then
     git clone https://github.com/Mehtab-24/AI-stack-auditor.git
+else
+    cd AI-stack-auditor
+    git fetch --all
+    git reset --hard origin/main
+    cd ..
 fi
 cd AI-stack-auditor/backend
 
