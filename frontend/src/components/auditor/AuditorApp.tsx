@@ -384,9 +384,10 @@ export function AuditorApp() {
       if (data.persisted) {
         toast.success("Audit report saved to your account");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.warn("FastAPI audit execution failed, resolving on local mock fallback data:", error);
-      toast.error("Audit failed — showing demo data");
+      const errMsg = error instanceof Error ? error.message : String(error);
+      toast.error(`Audit failed — showing demo data (${errMsg})`);
       // Fallback resolves to mockData if auditResult is null
     } finally {
       setLoadingAudit(false);
