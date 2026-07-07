@@ -6,8 +6,8 @@
 
 *Discover, analyze, and optimize your company's AI software spend — automatically.*
 
-[![Live Demo](https://img.shields.io/badge/demo-live-22D97A?style=for-the-badge)[(https://ai-stack-auditor-koar.vercel.app/)]
-[![Watch Video](https://img.shields.io/badge/watch-demo_video-red?style=for-the-badge&logo=youtube)]([YOUR_YOUTUBE_URL_HERE](https://youtu.be/bw-0zxUH4EY))
+[![Live Demo](https://img.shields.io/badge/demo-live-22D97A?style=for-the-badge)](https://ai-stack-auditor-koar.vercel.app/)
+[![Watch Video](https://img.shields.io/badge/watch-demo_video-red?style=for-the-badge&logo=youtube)](https://youtu.be/bw-0zxUH4EY)
 [![Built for Kaggle](https://img.shields.io/badge/Kaggle-AI_Agents_Capstone-20BEFF?style=for-the-badge&logo=kaggle)](https://www.kaggle.com/competitions/vibecoding-agents-capstone-project)
 
 </div>
@@ -70,22 +70,22 @@ downgraded, or modified automatically — the system informs a decision, it does
 <div align="center">
 <table>
 <tr>
-<td width="50%"><img src="C:\Users\Mehtab Singh\OneDrive\Pictures\Screenshots\Screenshot 2026-07-07 021038.png" alt="Savings Dashboard" /><br/><sub><b>Savings Dashboard</b> — total savings, category breakdown, one click to download</sub></td>
-<td width="50%"><img src="C:\Users\Mehtab Singh\OneDrive\Pictures\Screenshots\Screenshot 2026-07-07 021044.png" alt="Agent Trace Panel" /><br/><sub><b>Agent Trace Panel</b> — live reasoning, agent by agent</sub></td>
+<td width="50%"><img src="./screenshots/savings-dashboard.png" alt="Savings Dashboard" /><br/><sub><b>Savings Dashboard</b> — total savings, category breakdown, one click to download</sub></td>
+<td width="50%"><img src="./screenshots/agent-trace-panel.png" alt="Agent Trace Panel" /><br/><sub><b>Agent Trace Panel</b> — live reasoning, agent by agent</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="C:\Users\Mehtab Singh\OneDrive\Pictures\Screenshots\Screenshot 2026-07-07 021120.png" alt="Findings View" /><br/><sub><b>Findings</b> — confidence-scored, traceable to source data</sub></td>
-<td width="50%"><img src="C:\Users\Mehtab Singh\OneDrive\Pictures\Screenshots\Screenshot 2026-07-07 021138.png" alt="Recommendations View" /><br/><sub><b>Recommendations</b> — draft-only, explicit approval required</sub></td>
+<td width="50%"><img src="./screenshots/findings-view.png" alt="Findings View" /><br/><sub><b>Findings</b> — confidence-scored, traceable to source data</sub></td>
+<td width="50%"><img src="./screenshots/recommendations-view.png" alt="Recommendations View" /><br/><sub><b>Recommendations</b> — draft-only, explicit approval required</sub></td>
 </tr>
 </table>
 </div>
 
-> *(Replace the image paths above with your actual screenshot files, or delete this section
-> if you're not committing screenshots into the repo.)*
+> **Note:** To add screenshots, create a `screenshots/` folder in the repo root and place your images there with the names shown above, or update the paths to match your actual screenshot filenames.
 
 ---
 
 ## Architecture
+
 
 ```
 ┌───────────────────────┐      ┌──────────────────────────┐
