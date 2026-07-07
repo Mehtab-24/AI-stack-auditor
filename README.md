@@ -70,12 +70,12 @@ downgraded, or modified automatically — the system informs a decision, it does
 <div align="center">
 <table>
 <tr>
-<td width="50%"><img src="docs/screenshots/dashboard.png" alt="Savings Dashboard" /><br/><sub><b>Savings Dashboard</b> — total savings, category breakdown, one click to download</sub></td>
-<td width="50%"><img src="docs/screenshots/agent-trace.png" alt="Agent Trace Panel" /><br/><sub><b>Agent Trace Panel</b> — live reasoning, agent by agent</sub></td>
+<td width="50%"><img src="C:\Users\Mehtab Singh\OneDrive\Pictures\Screenshots\Screenshot 2026-07-07 021038.png" alt="Savings Dashboard" /><br/><sub><b>Savings Dashboard</b> — total savings, category breakdown, one click to download</sub></td>
+<td width="50%"><img src="C:\Users\Mehtab Singh\OneDrive\Pictures\Screenshots\Screenshot 2026-07-07 021044.png" alt="Agent Trace Panel" /><br/><sub><b>Agent Trace Panel</b> — live reasoning, agent by agent</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="docs/screenshots/findings.png" alt="Findings View" /><br/><sub><b>Findings</b> — confidence-scored, traceable to source data</sub></td>
-<td width="50%"><img src="docs/screenshots/recommendations.png" alt="Recommendations View" /><br/><sub><b>Recommendations</b> — draft-only, explicit approval required</sub></td>
+<td width="50%"><img src="C:\Users\Mehtab Singh\OneDrive\Pictures\Screenshots\Screenshot 2026-07-07 021120.png" alt="Findings View" /><br/><sub><b>Findings</b> — confidence-scored, traceable to source data</sub></td>
+<td width="50%"><img src="C:\Users\Mehtab Singh\OneDrive\Pictures\Screenshots\Screenshot 2026-07-07 021138.png" alt="Recommendations View" /><br/><sub><b>Recommendations</b> — draft-only, explicit approval required</sub></td>
 </tr>
 </table>
 </div>
